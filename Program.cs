@@ -91,7 +91,7 @@ namespace StoreBot
             Console.WriteLine($"StoreBot - {Assembly.GetExecutingAssembly().GetName().Version.ToString()}");
             DiscordConfiguration defaultconfig = new DiscordConfiguration
             {
-                Token = "NzE0NDk0NzYwNTUwNjYyMTU0.XxH2Ew.jwWgbOVlqefD9VRavrRZYfibvC4",
+                Token = "NzM0MDU1MDYyMTA3NzE3NzMy.XxMI6A.r0nwPncO5tcFxbfRzD1Cm2lObfQ",
                 TokenType = TokenType.Bot,
                 AutoReconnect = true
 
@@ -120,12 +120,8 @@ namespace StoreBot
             Commands.CommandErrored += Commands_CommandErrored;
             Commands.CommandExecuted += Commands_CommandExecuted;
             Commands.RegisterCommands<StoreCommands>();
-
             await client.ConnectAsync();
             await Task.Delay(-1);
-            
-
-
         }
 
 
