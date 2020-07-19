@@ -4,8 +4,10 @@ using DSharpPlus.CommandsNext.Exceptions;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using DSharpPlus.Interactivity;
+using Newtonsoft.Json;
 using System;
 using System.Collections;
+using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -14,6 +16,12 @@ namespace StoreBot
 {
     public class Program
     {
+
+        public struct ConfigJson
+        {
+            [JsonProperty("discordtoken")]
+            public string Token { get; private set; }
+        }
 
         public static Task Client_Ready(ReadyEventArgs e)
         {
@@ -86,18 +94,32 @@ namespace StoreBot
             }
         }
 
+        public static async Task<DiscordConfiguration> LoadConfig()
+        {
+            string json = "";
+            using (FileStream fs = File.Open("config.json", FileMode.Open))
+            {
+                using (StreamReader sr = new StreamReader(fs))
+                {
+                    json = await sr.ReadToEndAsync();
+                }
+            }
+            var cfgjson = JsonConvert.DeserializeObject<ConfigJson>(json);
+            DiscordConfiguration config = new()
+            {
+                Token = cfgjson.Token,
+                TokenType = TokenType.Bot,
+                AutoReconnect = true,
+                LogLevel = LogLevel.Info,
+                UseInternalLogHandler = true
+            };
+            return config;
+        }
+
         public static async Task Main(string[] args)
         {
             Console.WriteLine($"StoreBot - {Assembly.GetExecutingAssembly().GetName().Version.ToString()}");
-            DiscordConfiguration defaultconfig = new DiscordConfiguration
-            {
-                Token = "NzE0NDk0NzYwNTUwNjYyMTU0.XxH2Ew.jwWgbOVlqefD9VRavrRZYfibvC4",
-                TokenType = TokenType.Bot,
-                AutoReconnect = true
-
-
-            };
-            DiscordClient client = new DiscordClient(defaultconfig);
+            DiscordClient client = new DiscordClient(await LoadConfig());
             client.Ready += Client_Ready;
             client.GuildAvailable += Client_GuildAvailable;
             client.ClientErrored += Client_ClientError;
