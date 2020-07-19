@@ -6,10 +6,12 @@ using StoreLib.Models;
 using StoreLib.Services;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace StoreBot
@@ -49,7 +51,8 @@ namespace StoreBot
         public async Task PackagesAsync(CommandContext cct, string ID)
         {
             DisplayCatalogHandler dcat = DisplayCatalogHandler.ProductionConfig();
-            await dcat.QueryDCATAsync(ID);
+            //Push the input id through a Regex filter in order to take the onestoreid from the storepage url
+            await dcat.QueryDCATAsync(new Regex(@"[a-zA-Z0-9]{12}").Matches(ID)[0].Value);
             if (dcat.IsFound)
             {
                 var productembedded = new DiscordEmbedBuilder()

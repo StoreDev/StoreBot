@@ -142,12 +142,8 @@ namespace StoreBot
             Commands.CommandErrored += Commands_CommandErrored;
             Commands.CommandExecuted += Commands_CommandExecuted;
             Commands.RegisterCommands<StoreCommands>();
-
             await client.ConnectAsync();
             await Task.Delay(-1);
-            
-
-
         }
 
 
