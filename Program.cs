@@ -96,6 +96,19 @@ namespace StoreBot
 
         public static async Task<DiscordConfiguration> LoadConfig()
         {
+            string token = Environment.GetEnvironmentVariable("storebottoken");
+            if (!String.IsNullOrEmpty(token))
+            {
+                DiscordConfiguration configenv = new()
+                {
+                    Token = token,
+                    TokenType = TokenType.Bot,
+                    AutoReconnect = true,
+                    LogLevel = LogLevel.Info,
+                    UseInternalLogHandler = true
+                };
+                return configenv;
+            }
             string json = "";
             using (FileStream fs = File.Open("config.json", FileMode.Open))
             {
