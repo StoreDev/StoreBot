@@ -58,9 +58,7 @@ namespace StoreBot
                 var productembedded = new DiscordEmbedBuilder()
                 {
                     Title = dcat.ProductListing.Product.LocalizedProperties[0].ProductTitle,
-                    ImageUrl = dcat.ProductListing.Product.LocalizedProperties[0].Images[0].Uri.Replace("//", "https://"),
-                    Color = DiscordColor.Gold,
-                    Description = dcat.ProductListing.Product.LocalizedProperties[0].ProductDescription
+                    Color = DiscordColor.Gold
                 };
                 var packages = await dcat.GetPackagesForProductAsync();
                 foreach(PackageInstance package in packages)
@@ -68,7 +66,6 @@ namespace StoreBot
                     productembedded.AddField(package.PackageMoniker, package.PackageUri.ToString());
                 }
                 productembedded.Build();
-                Debug.WriteLine(dcat.ProductListing.Product.LocalizedProperties[0].Images[0].Uri.Replace("//", "https://"));
                 await cct.RespondAsync("", false, productembedded);
             }
             else
