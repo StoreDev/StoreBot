@@ -164,10 +164,32 @@ namespace StoreBot
             {
                 var productembedded = new DiscordEmbedBuilder()
                 {
-                    Title = customizedhandler.ProductListing.Product.LocalizedProperties[0].ProductTitle,
+                    Title = "App Info:",
+                    Footer = new Discord​Embed​Builder.EmbedFooter() { Text = $"{customizedhandler.ProductListing.Product.LocalizedProperties[0].ProductTitle} - {customizedhandler.ProductListing.Product.LocalizedProperties[0].PublisherName}", IconUrl= customizedhandler.ProductListing.Product.LocalizedProperties[0].Images[0].Uri.Replace("//", "https://") },
                     Color = DiscordColor.Gold
                 };
                 productembedded.AddField("Description:", customizedhandler.ProductListing.Product.LocalizedProperties[0].ProductDescription.Substring(0, 1023));
+                productembedded.AddField("Rating:", $"{customizedhandler.ProductListing.Product.MarketProperties[0].UsageData[0].AverageRating} Stars");
+                productembedded.AddField("Last Modified:", customizedhandler.ProductListing.Product.MarketProperties[0].OriginalReleaseDate.ToString());
+                productembedded.AddField("Product Type:", customizedhandler.ProductListing.Product.ProductType);
+                productembedded.AddField("Is a Microsoft Listing:", customizedhandler.ProductListing.Product.IsMicrosoftProduct.ToString());
+                if (customizedhandler.ProductListing.Product.ValidationData != null)
+                {
+                    productembedded.AddField("Validation Info:", customizedhandler.ProductListing.Product.ValidationData.RevisionId);
+                }
+                if (customizedhandler.ProductListing.Product.SandboxID != null)
+                {
+                    productembedded.AddField("SandBoxID:", customizedhandler.ProductListing.Product.SandboxID);
+                }
+                foreach (AlternateId PID in customizedhandler.ProductListing.Product.AlternateIds) //Dynamicly add any other ID(s) that might be present rather than doing a ton of null checks.
+                {
+                    productembedded.AddField($"{PID.IdType}:", PID.Value);
+                }
+                if (customizedhandler.ProductListing.Product.DisplaySkuAvailabilities[0].Sku.Properties.FulfillmentData != null)
+                {
+                    productembedded.AddField("WuCategoryID:", customizedhandler.ProductListing.Product.DisplaySkuAvailabilities[0].Sku.Properties.FulfillmentData.WuCategoryId);
+                    productembedded.AddField("EAppx Key ID:", customizedhandler.ProductListing.Product.DisplaySkuAvailabilities[0].Sku.Properties.Packages[0].KeyId);
+                }
                 productembedded.Build();
                 await cct.RespondAsync("", false, productembedded);
             }
