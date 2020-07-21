@@ -55,17 +55,42 @@ namespace StoreBot
             await dcat.QueryDCATAsync(new Regex(@"[a-zA-Z0-9]{12}").Matches(ID)[0].Value);
             if (dcat.IsFound)
             {
+                //configure product embed 
                 var productembedded = new DiscordEmbedBuilder()
                 {
-                    Title = dcat.ProductListing.Product.LocalizedProperties[0].ProductTitle,
-                    Color = DiscordColor.Gold
+                    //configure title of embed
+                    Title = "Packages:",
+                    //configure colour of embed
+                    Color = DiscordColor.Gold,
+                    //add app info like name and logo to the footer of the embed
+                    Footer = new Discord​Embed​Builder.EmbedFooter() { Text = dcat.ProductListing.Product.LocalizedProperties[0].ProductTitle, IconUrl= dcat.ProductListing.Product.LocalizedProperties[0].Images[0].Uri.Replace("//", "https://"), }
                 };
+                //create empty package list string
+                string packagelist = "";
+                //get all packages for the product
                 var packages = await dcat.GetPackagesForProductAsync();
+                //iterate through all packages
                 foreach(PackageInstance package in packages)
                 {
-                    productembedded.AddField(package.PackageMoniker, package.PackageUri.ToString());
+                    //temporarily hold the value of the new package in a seperate var in order to check if the field will be to long
+                    string packagelink= $"[{package.PackageMoniker}]({package.PackageUri})";
+                    //check if the combined lengths of the package list and new package link will not exceed the maximum field length of 1024 characters
+                    if ((packagelink.Length + packagelist.Length) >= 1024)
+                    {
+                        //if the combined lengths of the package list and new package link exceed 1024 characters
+                        //push the packages as a field and reset packagelist
+                        productembedded.AddField("‍", packagelist);
+                        packagelist = packagelink;
+                    }
+                    else
+                    {
+                        //if the combined lengths of the package list and new package link DO NOT exceed 1024 characters
+                        packagelist += "\n" + packagelink;
+                    }
                 }
+                //build product embed
                 productembedded.Build();
+                //send product embed
                 await cct.RespondAsync("", false, productembedded);
             }
             else
