@@ -72,6 +72,8 @@ namespace StoreBot
                 int freechars = freecharsmax;
                 //create empty package list string
                 string packagelist = "";
+                //start typing indicator
+                await cct.TriggerTypingAsync();
                 //get all packages for the product
                 var packages = await dcat.GetPackagesForProductAsync();
                 //iterate through all packages
@@ -136,9 +138,11 @@ namespace StoreBot
         [Command("advancedquery"), Description("A customizable query that allows the caller to specify the environment and locale.")]
         public async Task AdvancedQueryAsync(CommandContext cct, string ID, string environment, string localestring)
         {
-            if(String.IsNullOrEmpty(ID) || String.IsNullOrEmpty(environment) || String.IsNullOrEmpty(localestring))
+            //start typing indicator
+            await cct.TriggerTypingAsync();
+            if (String.IsNullOrEmpty(ID) || String.IsNullOrEmpty(environment) || String.IsNullOrEmpty(localestring))
             {
-                await cct.RespondAsync("Please supply all required arguments. Example: advancedquery 9wzdncrfj3tj INT US-EN");
+                await cct.RespondAsync("Please supply all required arguments. Example: advancedquery 9wzdncrfj3tj Int US-EN");
                 return;
             }
             bool marketresult = Enum.TryParse(localestring.Split('-')[0], out Market market);
