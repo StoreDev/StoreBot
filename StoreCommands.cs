@@ -10,6 +10,7 @@ using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -65,6 +66,10 @@ namespace StoreBot
                     //add app info like name and logo to the footer of the embed
                     Footer = new Discord​Embed​Builder.EmbedFooter() { Text = dcat.ProductListing.Product.LocalizedProperties[0].ProductTitle, IconUrl= dcat.ProductListing.Product.LocalizedProperties[0].Images[0].Uri.Replace("//", "https://"), }
                 };
+                //set maximum number of free characters per embed
+                int freecharsmax = 5991 - dcat.ProductListing.Product.LocalizedProperties[0].ProductTitle.Length;
+                //set the number of free characters in the current embed
+                int freechars = freecharsmax;
                 //create empty package list string
                 string packagelist = "";
                 //get all packages for the product
@@ -78,9 +83,25 @@ namespace StoreBot
                     if ((packagelink.Length + packagelist.Length) >= 1024)
                     {
                         //if the combined lengths of the package list and new package link exceed 1024 characters
-                        //push the packages as a field and reset packagelist
+                        //subtract the number of free characters being taken up by the new field
+                        freechars -= packagelist.Length + 1;
+                        // if the embed will exceed the max number of characters allowed (6000)
+                        if (freechars <= 0)
+                        {
+                            //build product embed
+                            productembedded.Build();
+                            //send product embed
+                            await cct.RespondAsync("", false, productembedded);
+                            //reset fields of product embed
+                            productembedded.RemoveFieldRange(0,productembedded.Fields.Count);
+                            //reset number of characters free in embed
+                            freechars = freecharsmax - packagelink.Length-1;
+                        }
+                        //push the packages as a field
                         productembedded.AddField("‍", packagelist);
+                        //reset packagelist
                         packagelist = packagelink;
+
                     }
                     else
                     {
@@ -88,6 +109,18 @@ namespace StoreBot
                         packagelist += "\n" + packagelink;
                     }
                 }
+                //check if the last field will not exceed the maximum number of characters per embed
+                if (freechars <= 0)
+                {
+                    //build product embed
+                    productembedded.Build();
+                    //send product embed
+                    await cct.RespondAsync("", false, productembedded);
+                    //reset fields of product embed
+                    productembedded.RemoveFieldRange(0, productembedded.Fields.Count);
+                }
+                //push the last field
+                productembedded.AddField("‍", packagelist);
                 //build product embed
                 productembedded.Build();
                 //send product embed
