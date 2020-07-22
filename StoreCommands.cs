@@ -184,6 +184,160 @@ namespace StoreBot
 
         }
 
+        [Command("advancedpackages"), Description("Queries FE3 for packages for the specified ID, Environment and Locale.")]
+        public async Task AdvancePackagesAsync(CommandContext cct, [Description("Specify a product ID, Example: 9wzdncrfj3tj")] string ID, [Description("Specify an Environment Example: Production for Production, Int for Instance")] string environment, [Description("Specify a locale Example: US-EN for United States English")] string localestring)
+        {
+            if (String.IsNullOrEmpty(ID) || String.IsNullOrEmpty(environment) || String.IsNullOrEmpty(localestring))
+            {
+                await cct.RespondAsync("Please supply all required arguments. Example: advancedpackages 9wzdncrfj3tj Int US-EN");
+                return;
+            }
+            bool marketresult = Enum.TryParse(localestring.Split('-')[0], out Market market);
+            bool langresult = Enum.TryParse(localestring.Split('-')[1].ToLower(), out Lang lang);
+            if (!marketresult || !langresult)
+            {
+                await cct.RespondAsync($"Invalid Market or Lang specified. Example: US-EN for United States English, you provided Market {localestring.Split('-')[0]} and Language {localestring.Split('-')[1]}");
+                return;
+            }
+            bool environmentresult = Enum.TryParse(environment, out DCatEndpoint env);
+            if (!environmentresult)
+            {
+                await cct.RespondAsync($"Invalid Environment specified. Example: Production for Production, Int for Instance. You provided {environment}");
+                return;
+            }
+            DisplayCatalogHandler dcat = new DisplayCatalogHandler(env, new Locale(market, lang, true));
+            //Push the input id through a Regex filter in order to take the onestoreid from the storepage url
+            await dcat.QueryDCATAsync(new Regex(@"[a-zA-Z0-9]{12}").Matches(ID)[0].Value);
+            if (dcat.IsFound)
+            {
+                //configure product embed 
+                var productembedded = new DiscordEmbedBuilder()
+                {
+                    //configure title of embed
+                    Title = "Packages:",
+                    //configure colour of embed
+                    Color = DiscordColor.Gold,
+                    //add app info like name and logo to the footer of the embed
+                    Footer = new Discord​Embed​Builder.EmbedFooter() { Text = dcat.ProductListing.Product.LocalizedProperties[0].ProductTitle, IconUrl = dcat.ProductListing.Product.LocalizedProperties[0].Images[0].Uri.Replace("//", "https://"), }
+                };
+                //set maximum number of free characters per embed
+                int freecharsmax = 5991 - dcat.ProductListing.Product.LocalizedProperties[0].ProductTitle.Length;
+                //set the number of free characters in the current embed
+                int freechars = freecharsmax;
+                //create empty package list string
+                string packagelist = "";
+                //start typing indicator
+                await cct.TriggerTypingAsync();
+                //get all packages for the product.
+                var packages = await dcat.GetPackagesForProductAsync();
+                //iterate through all packages
+                foreach (PackageInstance package in packages)
+                {
+                    //temporarily hold the value of the new package in a seperate var in order to check if the field will be to long
+                    string packagelink = $"[{package.PackageMoniker}]({package.PackageUri})";
+                    //check if the combined lengths of the package list and new package link will not exceed the maximum field length of 1024 characters
+                    if ((packagelink.Length + packagelist.Length) >= 1024)
+                    {
+                        //if the combined lengths of the package list and new package link exceed 1024 characters
+                        //subtract the number of free characters being taken up by the new field
+                        freechars -= packagelist.Length + 1;
+                        // if the embed will exceed the max number of characters allowed (6000)
+                        if (freechars <= 0)
+                        {
+                            //build product embed
+                            productembedded.Build();
+                            //send product embed
+                            await cct.RespondAsync("", false, productembedded);
+                            //reset fields of product embed
+                            productembedded.RemoveFieldRange(0, productembedded.Fields.Count);
+                            //reset number of characters free in embed
+                            freechars = freecharsmax - packagelink.Length - 1;
+                        }
+                        //push the packages as a field
+                        productembedded.AddField("‍", packagelist);
+                        //reset packagelist
+                        packagelist = packagelink;
+
+                    }
+                    else
+                    {
+                        //if the combined lengths of the package list and new package link DO NOT exceed 1024 characters
+                        packagelist += "\n" + packagelink;
+                    }
+                }
+                if (dcat.ProductListing.Product.DisplaySkuAvailabilities[0].Sku.Properties.Packages.Count > 0)
+                {
+                    Debug.WriteLine(dcat.ProductListing.Product.DisplaySkuAvailabilities[0].Sku.Properties.Packages.Count);
+                    if (dcat.ProductListing.Product.DisplaySkuAvailabilities[0].Sku.Properties.Packages.Count != 0)
+                    {
+                        //For some weird reason, some listings report having packages when really they don't have one hosted. This checks the child to see if the package is really null or not.
+                        if (!object.ReferenceEquals(dcat.ProductListing.Product.DisplaySkuAvailabilities[0].Sku.Properties.Packages[0].PackageDownloadUris, null))
+                        {
+                            foreach (var Package in dcat.ProductListing.Product.DisplaySkuAvailabilities[0].Sku.Properties.Packages[0].PackageDownloadUris)
+                            {
+                                //create new uri from package uri
+                                Uri PackageURL = new Uri(Package.Uri);
+                                //temporarily hold the value of the new package in a seperate var in order to check if the field will be to long
+                                string packagelink = $"[{PackageURL.Segments[PackageURL.Segments.Length - 1]}]({Package.Uri})";
+                                //check if the combined lengths of the package list and new package link will not exceed the maximum field length of 1024 characters
+                                if ((packagelink.Length + packagelist.Length) >= 1024)
+                                {
+                                    //if the combined lengths of the package list and new package link exceed 1024 characters
+                                    //subtract the number of free characters being taken up by the new field
+                                    freechars -= packagelist.Length + 1;
+                                    // if the embed will exceed the max number of characters allowed (6000)
+                                    if (freechars <= 0)
+                                    {
+                                        //build product embed
+                                        productembedded.Build();
+                                        //send product embed
+                                        await cct.RespondAsync("", false, productembedded);
+                                        //reset fields of product embed
+                                        productembedded.RemoveFieldRange(0, productembedded.Fields.Count);
+                                        //reset number of characters free in embed
+                                        freechars = freecharsmax - packagelink.Length - 1;
+                                    }
+                                    //push the packages as a field
+                                    productembedded.AddField("‍", packagelist);
+                                    //reset packagelist
+                                    packagelist = packagelink;
+
+                                }
+                                else
+                                {
+                                    //if the combined lengths of the package list and new package link DO NOT exceed 1024 characters
+                                    packagelist += "\n" + packagelink;
+                                }
+                            }
+                        }
+                    }
+
+
+                }
+                //check if the last field will not exceed the maximum number of characters per embed
+                if (freechars <= 0)
+                {
+                    //build product embed
+                    productembedded.Build();
+                    //send product embed
+                    await cct.RespondAsync("", false, productembedded);
+                    //reset fields of product embed
+                    productembedded.RemoveFieldRange(0, productembedded.Fields.Count);
+                }
+                //push the last field
+                productembedded.AddField("‍", packagelist);
+                //build product embed
+                productembedded.Build();
+                //send product embed
+                await cct.RespondAsync("", false, productembedded);
+            }
+            else
+            {
+                await cct.RespondAsync("Product not found.");
+            }
+
+        }
+
         [Command("advancedquery"), Description("A customizable query that allows the caller to specify the environment and locale.")]
         public async Task AdvancedQueryAsync(CommandContext cct, [Description("Specify a product ID, Example: 9wzdncrfj3tj")] string ID, [Description("Specify an Environment Example: Production for Production, Int for Instance")] string environment, [Description("Specify a locale Example: US-EN for United States English")] string localestring)
         {
