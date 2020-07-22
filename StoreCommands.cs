@@ -49,7 +49,7 @@ namespace StoreBot
         */
 
         [Command("packages"), Description("Queries FE3 for packages for the specified ID.")]
-        public async Task PackagesAsync(CommandContext cct, string ID)
+        public async Task PackagesAsync(CommandContext cct, [Description("Specify a product ID or storepage, Example: 9wzdncrfj3tj or https://www.microsoft.com/en-gb/p/netflix/9wzdncrfj3tj")] string ID)
         {
             DisplayCatalogHandler dcat = DisplayCatalogHandler.ProductionConfig();
             //Push the input id through a Regex filter in order to take the onestoreid from the storepage url
@@ -185,7 +185,7 @@ namespace StoreBot
         }
 
         [Command("advancedquery"), Description("A customizable query that allows the caller to specify the environment and locale.")]
-        public async Task AdvancedQueryAsync(CommandContext cct, string ID, string environment, string localestring)
+        public async Task AdvancedQueryAsync(CommandContext cct, [Description("Specify a product ID, Example: 9wzdncrfj3tj")] string ID, [Description("Specify an Environment Example: Production for Production, Int for Instance")] string environment, [Description("Specify a locale Example: US-EN for United States English")] string localestring)
         {
             //start typing indicator
             await cct.TriggerTypingAsync();
