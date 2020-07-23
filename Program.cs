@@ -156,6 +156,7 @@ namespace StoreBot
             Commands.CommandExecuted += Commands_CommandExecuted;
             Commands.RegisterCommands<StoreCommands>();
             await client.ConnectAsync();
+            await client.UpdateStatusAsync(new DiscordActivity("DisplayCatalog", ActivityType.Watching), UserStatus.Online);
             await Task.Delay(-1);
         }
 

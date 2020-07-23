@@ -37,6 +37,29 @@ namespace StoreBot
 
         }
 
+        [Command("clean"), Description("Removes the last X messages sent by StoreBot.")]
+        public async Task CleanAsync(CommandContext cct, int numbertoclean)
+        {
+            int messagesdeleted = 0;
+            var messages = await cct.Channel.GetMessagesAsync(100);
+            foreach(var message in messages)
+            {
+                if(messagesdeleted >= numbertoclean)
+                {
+                    var finishedmessage = await cct.RespondAsync("Finished cleaning.");
+                    await Task.Delay(3000);
+                    await finishedmessage.DeleteAsync();
+                    return;
+                }
+                else if(message.Author == cct.Client.CurrentUser)
+                {
+                   await message.DeleteAsync();
+                    messagesdeleted++;
+                }
+            }
+
+        }
+
         /*
         [Command("help"), Description("Returns all registered commands and their descriptions.")]
         public async Task Help(CommandContext cct)
@@ -416,11 +439,15 @@ namespace StoreBot
                 case "":
                     if (new Regex(@"[a-zA-Z0-9]{12}").IsMatch(ID)) 
                     {
-                        IDType = IdentiferType.ProductID;
+                        IDType = IdentiferType.ProductID; 
                     } 
                     else if (new Regex("[a-zA-z0-9]+[.]+[a-zA-z0-9]+[_]+[a-zA-z0-9]").IsMatch(ID))
                     {
                         IDType = IdentiferType.PackageFamilyName;
+                    }
+                    else if (new Regex(@"[0-9]{9}").IsMatch(ID))
+                    {
+                        IDType = IdentiferType.XboxTitleID;
                     }
                     break;
                 case "XboxTitleID":
@@ -446,18 +473,25 @@ namespace StoreBot
             await dcat.QueryDCATAsync(ID,IDType);
             if (dcat.IsFound)
             {
+                if(dcat.ProductListing.Product != null) //One day ill fix the mess that is the StoreLib JSON, one day.
+                {
+                    dcat.ProductListing.Products = new(); 
+                    dcat.ProductListing.Products.Add(dcat.ProductListing.Product);
+                }
                 //start typing indicator
                 await cct.TriggerTypingAsync();
                 var productembedded = new DiscordEmbedBuilder()
                 {
                     Title = "App Info:",
-                    Footer = new Discord​Embed​Builder.EmbedFooter() { Text = $"{dcat.ProductListing.Product.LocalizedProperties[0].ProductTitle} - {dcat.ProductListing.Product.LocalizedProperties[0].PublisherName}", IconUrl = dcat.ProductListing.Product.LocalizedProperties[0].Images[0].Uri.Replace("//", "https://") },
+                    Footer = new Discord​Embed​Builder.EmbedFooter() { Text = $"{dcat.ProductListing.Products[0].LocalizedProperties[0].ProductTitle} - {dcat.ProductListing.Products[0].LocalizedProperties[0].PublisherName}", IconUrl = dcat.ProductListing.Products[0].LocalizedProperties[0].Images[0].Uri.Replace("//", "https://") },
                     Color = DiscordColor.Gold
                 };
-                foreach (AlternateId PID in dcat.ProductListing.Product.AlternateIds) //Dynamicly add any other ID(s) that might be present rather than doing a ton of null checks.
+                foreach (AlternateId PID in dcat.ProductListing.Products[0].AlternateIds) //Dynamicly add any other ID(s) that might be present rather than doing a ton of null checks.
                 {
                     productembedded.AddField($"{PID.IdType}:", PID.Value);
                 }
+                productembedded.AddField($"ProductID:", dcat.ProductListing.Products[0].ProductId); //Add the product ID
+                productembedded.AddField($"PackageFamilyName:", dcat.ProductListing.Products[0].Properties.PackageFamilyName); //Add the package family name
                 productembedded.Build();
                 await cct.RespondAsync("", false, productembedded);
             }
