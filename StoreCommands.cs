@@ -437,8 +437,11 @@ namespace StoreBot
                 }
                 if (customizedhandler.ProductListing.Product.DisplaySkuAvailabilities[0].Sku.Properties.FulfillmentData != null)
                 {
+                    if(customizedhandler.ProductListing.Product.DisplaySkuAvailabilities[0].Sku.Properties.Packages[0].KeyId != null)
+                    {
+                        productembedded.AddField("EAppx Key ID:", customizedhandler.ProductListing.Product.DisplaySkuAvailabilities[0].Sku.Properties.Packages[0].KeyId);
+                    }
                     productembedded.AddField("WuCategoryID:", customizedhandler.ProductListing.Product.DisplaySkuAvailabilities[0].Sku.Properties.FulfillmentData.WuCategoryId);
-                    productembedded.AddField("EAppx Key ID:", customizedhandler.ProductListing.Product.DisplaySkuAvailabilities[0].Sku.Properties.Packages[0].KeyId);
                 }
                 productembedded.Build();
                 await cct.RespondAsync("", false, productembedded);
@@ -527,7 +530,6 @@ namespace StoreBot
             else
             {
                 await cct.RespondAsync("Product not found.");
-                await cct.RespondAsync();
             }
         }
 
