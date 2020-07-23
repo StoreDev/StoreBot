@@ -25,73 +25,32 @@ namespace StoreBot
 
         public static Task Client_Ready(ReadyEventArgs e)
         {
-            // let's log the fact that this event occured
             e.Client.DebugLogger.LogMessage(LogLevel.Info, "StoreBot", "Client is ready to process events.", DateTime.Now);
-
-            // since this method is not async, let's return
-            // a completed task, so that no additional work
-            // is done
             return Task.CompletedTask;
         }
 
         private static Task Client_GuildAvailable(GuildCreateEventArgs e)
         {
-            // let's log the name of the guild that was just
-            // sent to our client
-            e.Client.DebugLogger.LogMessage(LogLevel.Info, "StoreBot", $"Guild available: {e.Guild.Name}", DateTime.Now);
-
-            // since this method is not async, let's return
-            // a completed task, so that no additional work
-            // is done
+            e.Client.DebugLogger.LogMessage(LogLevel.Info, "StoreBot", $"Server available: {e.Guild.Name}", DateTime.Now);
             return Task.CompletedTask;
         }
 
         private static Task Client_ClientError(ClientErrorEventArgs e)
         {
-            // let's log the details of the error that just 
-            // occured in our client
             e.Client.DebugLogger.LogMessage(LogLevel.Error, "StoreBot", $"Exception occured: {e.Exception.GetType()}: {e.Exception.Message}", DateTime.Now);
-
-            // since this method is not async, let's return
-            // a completed task, so that no additional work
-            // is done
             return Task.CompletedTask;
         }
 
         private static Task Commands_CommandExecuted(CommandExecutionEventArgs e)
         {
-            // let's log the name of the command and user
-            e.Context.Client.DebugLogger.LogMessage(LogLevel.Info, "StoreBot", $"{e.Context.User.Username} successfully executed '{e.Command.QualifiedName}'", DateTime.Now);
-
-            // since this method is not async, let's return
-            // a completed task, so that no additional work
-            // is done
+            e.Context.Client.DebugLogger.LogMessage(LogLevel.Info, "StoreBot", $"{e.Context.User.Username}:{e.Context.User.Id.ToString()} ran command '{e.Command.QualifiedName}'", DateTime.Now);
             return Task.CompletedTask;
         }
 
-        private static async Task Commands_CommandErrored(CommandErrorEventArgs e)
+        private static Task Commands_CommandErrored(CommandErrorEventArgs e)
         {
-            // let's log the error details
             e.Context.Client.DebugLogger.LogMessage(LogLevel.Error, "StoreBot", $"{e.Context.User.Username} tried executing '{e.Command?.QualifiedName ?? "<unknown command>"}' but it errored: {e.Exception.GetType()}: {e.Exception.Message ?? "<no message>"}", DateTime.Now);
-
-            // let's check if the error is a result of lack
-            // of required permissions
-            if (e.Exception is ChecksFailedException ex)
-            {
-                // yes, the user lacks required permissions, 
-                // let them know
-
-                var emoji = DiscordEmoji.FromName(e.Context.Client, ":no_entry:");
-
-                // let's wrap the response into an embed
-                var embed = new DiscordEmbedBuilder
-                {
-                    Title = "Access denied",
-                    Description = $"{emoji} You do not have the permissions required to execute this command.",
-                    Color = new DiscordColor(0xFF0000) // red
-                };
-                await e.Context.RespondAsync("", embed: embed);
-            }
+            return Task.CompletedTask;
         }
 
         public static async Task<DiscordConfiguration> LoadConfig()
@@ -155,8 +114,7 @@ namespace StoreBot
             Commands.CommandErrored += Commands_CommandErrored;
             Commands.CommandExecuted += Commands_CommandExecuted;
             Commands.RegisterCommands<StoreCommands>();
-            await client.ConnectAsync();
-            await client.UpdateStatusAsync(new DiscordActivity("DisplayCatalog", ActivityType.Watching), UserStatus.Online);
+            await client.ConnectAsync(new DiscordActivity("DisplayCatalog", ActivityType.Watching), UserStatus.Online);
             await Task.Delay(-1);
         }
 

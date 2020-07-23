@@ -51,7 +51,7 @@ namespace StoreBot
                     await finishedmessage.DeleteAsync();
                     return;
                 }
-                else if(message.Author == cct.Client.CurrentUser)
+                else if(message.Author == cct.Client.CurrentUser || message.MentionedUsers.Contains(cct.Client.CurrentUser))
                 {
                    await message.DeleteAsync();
                     messagesdeleted++;
@@ -77,9 +77,22 @@ namespace StoreBot
         {
             DisplayCatalogHandler dcat = DisplayCatalogHandler.ProductionConfig();
             //Push the input id through a Regex filter in order to take the onestoreid from the storepage url
+            if(new Regex(@"[a-zA-Z0-9]{12}").Matches(ID).Count == 0)
+            {
+                return;
+            }
             await dcat.QueryDCATAsync(new Regex(@"[a-zA-Z0-9]{12}").Matches(ID)[0].Value);
             if (dcat.IsFound)
             {
+                if (dcat.ProductListing.Product != null) //One day ill fix the mess that is the StoreLib JSON, one day.
+                {
+                    dcat.ProductListing.Products = new();
+                    dcat.ProductListing.Products.Add(dcat.ProductListing.Product);
+                }
+                if (dcat.ProductListing.Products[0].LocalizedProperties[0].Images[0].Uri.StartsWith("//"))
+                { //Some apps have a broken url, starting with a //, this removes that slash and replaces it with proper https.
+                    dcat.ProductListing.Products[0].LocalizedProperties[0].Images[0].Uri = dcat.ProductListing.Products[0].LocalizedProperties[0].Images[0].Uri.Replace("//", "https://");
+                }
                 //configure product embed 
                 var productembedded = new DiscordEmbedBuilder()
                 {
@@ -88,7 +101,7 @@ namespace StoreBot
                     //configure colour of embed
                     Color = DiscordColor.Gold,
                     //add app info like name and logo to the footer of the embed
-                    Footer = new Discord​Embed​Builder.EmbedFooter() { Text = $"{dcat.ProductListing.Product.LocalizedProperties[0].ProductTitle} - {dcat.ProductListing.Product.LocalizedProperties[0].PublisherName}", IconUrl = dcat.ProductListing.Product.LocalizedProperties[0].Images[0].Uri.Replace("//", "https://") }
+                    Footer = new Discord​Embed​Builder.EmbedFooter() { Text = $"{dcat.ProductListing.Product.LocalizedProperties[0].ProductTitle} - {dcat.ProductListing.Product.LocalizedProperties[0].PublisherName}", IconUrl = dcat.ProductListing.Product.LocalizedProperties[0].Images[0].Uri }
                 };
                 //set maximum number of free characters per embed
                 int freecharsmax = 5988 - dcat.ProductListing.Product.LocalizedProperties[0].ProductTitle.Length;
@@ -235,6 +248,11 @@ namespace StoreBot
             await dcat.QueryDCATAsync(new Regex(@"[a-zA-Z0-9]{12}").Matches(ID)[0].Value);
             if (dcat.IsFound)
             {
+                if (dcat.ProductListing.Product != null) //One day ill fix the mess that is the StoreLib JSON, one day.
+                {
+                    dcat.ProductListing.Products = new();
+                    dcat.ProductListing.Products.Add(dcat.ProductListing.Product);
+                }
                 //configure product embed 
                 var productembedded = new DiscordEmbedBuilder()
                 {
@@ -391,6 +409,11 @@ namespace StoreBot
             await customizedhandler.QueryDCATAsync(ID);
             if (customizedhandler.IsFound)
             {
+                if (customizedhandler.ProductListing.Product != null) //One day ill fix the mess that is the StoreLib JSON, one day.
+                {
+                    customizedhandler.ProductListing.Products = new();
+                    customizedhandler.ProductListing.Products.Add(customizedhandler.ProductListing.Product);
+                }
                 var productembedded = new DiscordEmbedBuilder()
                 {
                     Title = "App Info:",
@@ -480,10 +503,14 @@ namespace StoreBot
                 }
                 //start typing indicator
                 await cct.TriggerTypingAsync();
+                if (dcat.ProductListing.Products[0].LocalizedProperties[0].Images[0].Uri.StartsWith("//")){ //Some apps have a broken url, starting with a //, this removes that slash and replaces it with proper https.
+                    dcat.ProductListing.Products[0].LocalizedProperties[0].Images[0].Uri = dcat.ProductListing.Products[0].LocalizedProperties[0].Images[0].Uri.Replace("//", "https://");
+                }
+                Debug.WriteLine(dcat.ProductListing.Products[0].LocalizedProperties[0].Images[0].Uri);
                 var productembedded = new DiscordEmbedBuilder()
                 {
                     Title = "App Info:",
-                    Footer = new Discord​Embed​Builder.EmbedFooter() { Text = $"{dcat.ProductListing.Products[0].LocalizedProperties[0].ProductTitle} - {dcat.ProductListing.Products[0].LocalizedProperties[0].PublisherName}", IconUrl = dcat.ProductListing.Products[0].LocalizedProperties[0].Images[0].Uri.Replace("//", "https://") },
+                    Footer = new Discord​Embed​Builder.EmbedFooter() { Text = $"{dcat.ProductListing.Products[0].LocalizedProperties[0].ProductTitle} - {dcat.ProductListing.Products[0].LocalizedProperties[0].PublisherName}", IconUrl = dcat.ProductListing.Products[0].LocalizedProperties[0].Images[0].Uri },
                     Color = DiscordColor.Gold
                 };
                 foreach (AlternateId PID in dcat.ProductListing.Products[0].AlternateIds) //Dynamicly add any other ID(s) that might be present rather than doing a ton of null checks.
@@ -491,7 +518,12 @@ namespace StoreBot
                     productembedded.AddField($"{PID.IdType}:", PID.Value);
                 }
                 productembedded.AddField($"ProductID:", dcat.ProductListing.Products[0].ProductId); //Add the product ID
-                productembedded.AddField($"PackageFamilyName:", dcat.ProductListing.Products[0].Properties.PackageFamilyName); //Add the package family name
+                try
+                {
+                    productembedded.AddField($"PackageFamilyName:", dcat.ProductListing.Products[0].Properties.PackageFamilyName); //Add the package family name
+
+                }
+                catch(Exception ex) { };
                 productembedded.Build();
                 await cct.RespondAsync("", false, productembedded);
             }
