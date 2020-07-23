@@ -151,7 +151,6 @@ namespace StoreBot
                 }
                 if (dcat.ProductListing.Product.DisplaySkuAvailabilities[0].Sku.Properties.Packages.Count > 0)
                 {
-                    Debug.WriteLine(dcat.ProductListing.Product.DisplaySkuAvailabilities[0].Sku.Properties.Packages.Count);
                     if (dcat.ProductListing.Product.DisplaySkuAvailabilities[0].Sku.Properties.Packages.Count != 0)
                     {
                         //For some weird reason, some listings report having packages when really they don't have one hosted. This checks the child to see if the package is really null or not.
@@ -311,7 +310,6 @@ namespace StoreBot
                 }
                 if (dcat.ProductListing.Product.DisplaySkuAvailabilities[0].Sku.Properties.Packages.Count > 0)
                 {
-                    Debug.WriteLine(dcat.ProductListing.Product.DisplaySkuAvailabilities[0].Sku.Properties.Packages.Count);
                     if (dcat.ProductListing.Product.DisplaySkuAvailabilities[0].Sku.Properties.Packages.Count != 0)
                     {
                         //For some weird reason, some listings report having packages when really they don't have one hosted. This checks the child to see if the package is really null or not.
@@ -506,7 +504,6 @@ namespace StoreBot
                 if (dcat.ProductListing.Products[0].LocalizedProperties[0].Images[0].Uri.StartsWith("//")){ //Some apps have a broken url, starting with a //, this removes that slash and replaces it with proper https.
                     dcat.ProductListing.Products[0].LocalizedProperties[0].Images[0].Uri = dcat.ProductListing.Products[0].LocalizedProperties[0].Images[0].Uri.Replace("//", "https://");
                 }
-                Debug.WriteLine(dcat.ProductListing.Products[0].LocalizedProperties[0].Images[0].Uri);
                 var productembedded = new DiscordEmbedBuilder()
                 {
                     Title = "App Info:",
