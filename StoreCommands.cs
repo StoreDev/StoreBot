@@ -4,6 +4,7 @@ using DSharpPlus.Entities;
 using DSharpPlus.Interactivity;
 using StoreLib.Models;
 using StoreLib.Services;
+using StoreLib.Utilities;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
@@ -64,10 +65,11 @@ namespace StoreBot
                     //configure colour of embed
                     Color = DiscordColor.Gold,
                     //add app info like name and logo to the footer of the embed
-                    Footer = new Discord​Embed​Builder.EmbedFooter() { Text = dcat.ProductListing.Product.LocalizedProperties[0].ProductTitle, IconUrl= dcat.ProductListing.Product.LocalizedProperties[0].Images[0].Uri.Replace("//", "https://"), }
+                    Footer = new Discord​Embed​Builder.EmbedFooter() { Text = $"{dcat.ProductListing.Product.LocalizedProperties[0].ProductTitle} - {dcat.ProductListing.Product.LocalizedProperties[0].PublisherName}", IconUrl = dcat.ProductListing.Product.LocalizedProperties[0].Images[0].Uri.Replace("//", "https://") }
                 };
                 //set maximum number of free characters per embed
-                int freecharsmax = 5991 - dcat.ProductListing.Product.LocalizedProperties[0].ProductTitle.Length;
+                int freecharsmax = 5988 - dcat.ProductListing.Product.LocalizedProperties[0].ProductTitle.Length;
+                freecharsmax -= dcat.ProductListing.Product.LocalizedProperties[0].PublisherName.Length;
                 //set the number of free characters in the current embed
                 int freechars = freecharsmax;
                 //create empty package list string
@@ -218,10 +220,11 @@ namespace StoreBot
                     //configure colour of embed
                     Color = DiscordColor.Gold,
                     //add app info like name and logo to the footer of the embed
-                    Footer = new Discord​Embed​Builder.EmbedFooter() { Text = dcat.ProductListing.Product.LocalizedProperties[0].ProductTitle, IconUrl = dcat.ProductListing.Product.LocalizedProperties[0].Images[0].Uri.Replace("//", "https://"), }
+                    Footer = new Discord​Embed​Builder.EmbedFooter() { Text = $"{dcat.ProductListing.Product.LocalizedProperties[0].ProductTitle} - {dcat.ProductListing.Product.LocalizedProperties[0].PublisherName}", IconUrl = dcat.ProductListing.Product.LocalizedProperties[0].Images[0].Uri.Replace("//", "https://") }
                 };
                 //set maximum number of free characters per embed
-                int freecharsmax = 5991 - dcat.ProductListing.Product.LocalizedProperties[0].ProductTitle.Length;
+                int freecharsmax = 5988 - dcat.ProductListing.Product.LocalizedProperties[0].ProductTitle.Length;
+                freecharsmax -= dcat.ProductListing.Product.LocalizedProperties[0].PublisherName.Length;
                 //set the number of free characters in the current embed
                 int freechars = freecharsmax;
                 //create empty package list string
@@ -403,6 +406,67 @@ namespace StoreBot
 
         }
 
+        [Command("convert"), Description("Convert the provided id to other formats")]
+        public async Task convertid(CommandContext cct, [Description("package ID")] string ID, [Description("Optionally set the identifer type, The options are:\nProductID, XboxTitleID, PackageFamilyName, ContentID, LegacyWindowsPhoneProductID, LegacyWindowsStoreProductID and LegacyXboxProductID")] string identifertype="")
+        {
+            DisplayCatalogHandler dcat = DisplayCatalogHandler.ProductionConfig();
+            IdentiferType IDType = IdentiferType.XboxTitleID;
+            switch (identifertype)
+            {
+                case "":
+                    if (new Regex(@"[a-zA-Z0-9]{12}").IsMatch(ID)) 
+                    {
+                        IDType = IdentiferType.ProductID;
+                    } 
+                    else if (new Regex("[a-zA-z0-9]+[.]+[a-zA-z0-9]+[_]+[a-zA-z0-9]").IsMatch(ID))
+                    {
+                        IDType = IdentiferType.PackageFamilyName;
+                    }
+                    break;
+                case "XboxTitleID":
+                    IDType = IdentiferType.XboxTitleID;
+                    break;
+                case "PackageFamilyName":
+                    IDType = IdentiferType.PackageFamilyName;
+                    break;
+                case "ContentID":
+                    IDType = IdentiferType.ContentID;
+                    break;
+                case "LegacyWindowsPhoneProductID":
+                    IDType = IdentiferType.LegacyWindowsPhoneProductID;
+                    break;
+                case "LegacyWindowsStoreProductID":
+                    IDType = IdentiferType.LegacyWindowsStoreProductID;
+                    break;
+                case "LegacyXboxProductID":
+                    IDType = IdentiferType.LegacyXboxProductID;
+                    break;
+
+            }
+            await dcat.QueryDCATAsync(ID,IDType);
+            if (dcat.IsFound)
+            {
+                //start typing indicator
+                await cct.TriggerTypingAsync();
+                var productembedded = new DiscordEmbedBuilder()
+                {
+                    Title = "App Info:",
+                    Footer = new Discord​Embed​Builder.EmbedFooter() { Text = $"{dcat.ProductListing.Product.LocalizedProperties[0].ProductTitle} - {dcat.ProductListing.Product.LocalizedProperties[0].PublisherName}", IconUrl = dcat.ProductListing.Product.LocalizedProperties[0].Images[0].Uri.Replace("//", "https://") },
+                    Color = DiscordColor.Gold
+                };
+                foreach (AlternateId PID in dcat.ProductListing.Product.AlternateIds) //Dynamicly add any other ID(s) that might be present rather than doing a ton of null checks.
+                {
+                    productembedded.AddField($"{PID.IdType}:", PID.Value);
+                }
+                productembedded.Build();
+                await cct.RespondAsync("", false, productembedded);
+            }
+            else
+            {
+                await cct.RespondAsync("Product not found.");
+                await cct.RespondAsync();
+            }
+        }
 
     }
 }
