@@ -81,7 +81,15 @@ namespace StoreBot
             {
                 return;
             }
-            await dcat.QueryDCATAsync(new Regex(@"[a-zA-Z0-9]{12}").Matches(ID)[0].Value);
+            if (Program.TokenDictionary.ContainsKey(cct.User.Id))
+            {
+                await dcat.QueryDCATAsync(new Regex(@"[a-zA-Z0-9]{12}").Matches(ID)[0].Value, Program.TokenDictionary.GetValueOrDefault(cct.User.Id));
+
+            }
+            else
+            {
+                await dcat.QueryDCATAsync(new Regex(@"[a-zA-Z0-9]{12}").Matches(ID)[0].Value);
+            }
             if (dcat.IsFound)
             {
                 if (dcat.ProductListing.Product != null) //One day ill fix the mess that is the StoreLib JSON, one day.
@@ -244,7 +252,16 @@ namespace StoreBot
             }
             DisplayCatalogHandler dcat = new DisplayCatalogHandler(env, new Locale(market, lang, true));
             //Push the input id through a Regex filter in order to take the onestoreid from the storepage url
-            await dcat.QueryDCATAsync(new Regex(@"[a-zA-Z0-9]{12}").Matches(ID)[0].Value);
+            //await dcat.QueryDCATAsync(new Regex(@"[a-zA-Z0-9]{12}").Matches(ID)[0].Value);
+            if (Program.TokenDictionary.ContainsKey(cct.User.Id))
+            {
+                await dcat.QueryDCATAsync(new Regex(@"[a-zA-Z0-9]{12}").Matches(ID)[0].Value, Program.TokenDictionary.GetValueOrDefault(cct.User.Id));
+
+            }
+            else
+            {
+                await dcat.QueryDCATAsync(new Regex(@"[a-zA-Z0-9]{12}").Matches(ID)[0].Value);
+            }
             if (dcat.IsFound)
             {
                 if (dcat.ProductListing.Product != null) //One day ill fix the mess that is the StoreLib JSON, one day.
@@ -404,7 +421,16 @@ namespace StoreBot
                 return;
             }
             DisplayCatalogHandler customizedhandler = new DisplayCatalogHandler(env, new Locale(market, lang, true));
-            await customizedhandler.QueryDCATAsync(ID);
+            //await customizedhandler.QueryDCATAsync(ID);
+            if (Program.TokenDictionary.ContainsKey(cct.User.Id))
+            {
+                await customizedhandler.QueryDCATAsync(new Regex(@"[a-zA-Z0-9]{12}").Matches(ID)[0].Value, Program.TokenDictionary.GetValueOrDefault(cct.User.Id));
+
+            }
+            else
+            {
+                await customizedhandler.QueryDCATAsync(new Regex(@"[a-zA-Z0-9]{12}").Matches(ID)[0].Value);
+            }
             if (customizedhandler.IsFound)
             {
                 if (customizedhandler.ProductListing.Product != null) //One day ill fix the mess that is the StoreLib JSON, one day.

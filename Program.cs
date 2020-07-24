@@ -7,6 +7,7 @@ using DSharpPlus.Interactivity;
 using Newtonsoft.Json;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -16,6 +17,7 @@ namespace StoreBot
 {
     public class Program
     {
+        public static Dictionary<ulong, string> TokenDictionary = new();
 
         public struct ConfigJson
         {
@@ -114,6 +116,7 @@ namespace StoreBot
             Commands.CommandErrored += Commands_CommandErrored;
             Commands.CommandExecuted += Commands_CommandExecuted;
             Commands.RegisterCommands<StoreCommands>();
+            Commands.RegisterCommands<AuthCommands>();
             await client.ConnectAsync(new DiscordActivity("DisplayCatalog", ActivityType.Watching), UserStatus.Online);
             await Task.Delay(-1);
         }
