@@ -10,9 +10,16 @@ namespace StoreBot
 {
     public class AuthCommands : BaseCommandModule
     {
-        [Command("submittoken"), RequireDirectMessage(), Description("Provide a MSA token to allow for flighted queries, DM ONLY")]
+        [Command("submittoken"), Description("Provide a MSA token to allow for flighted queries, DM ONLY")]
         public async Task IngestAuthToken(CommandContext cct, string token)
         {
+            if(cct.Guild != null)
+            {
+                var lastmessage = await cct.Channel.GetMessagesAsync(1);
+                await cct.Channel.DeleteMessageAsync(lastmessage[0]);
+                await cct.RespondAsync($"{cct.Message.Author.Mention} you must submit your token via a DM to avoid account takeover. Your token may have been exposed, an account relog is recommended.");
+                return;
+            }
             ulong DiscordAuthorID = cct.User.Id;
             if (Program.TokenDictionary.ContainsKey(DiscordAuthorID))
             {
