@@ -425,7 +425,7 @@ namespace StoreBot
                 productembedded.AddField("Is a Microsoft Listing:", customizedhandler.ProductListing.Product.IsMicrosoftProduct.ToString());
                 if (customizedhandler.ProductListing.Product.ValidationData != null)
                 {
-                    productembedded.AddField("Validation Info:", customizedhandler.ProductListing.Product.ValidationData.RevisionId);
+                    productembedded.AddField("Validation Info:", $"`{customizedhandler.ProductListing.Product.ValidationData.RevisionId}`");
                 }
                 if (customizedhandler.ProductListing.Product.SandboxID != null)
                 {
