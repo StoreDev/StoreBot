@@ -1,4 +1,5 @@
-﻿using DSharpPlus.CommandsNext;
+﻿using DSharpPlus;
+using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.Interactivity;
@@ -37,8 +38,8 @@ namespace StoreBot
 
         }
 
-        [Command("clean"), Description("Removes the last X messages sent by StoreBot.")]
-        public async Task CleanAsync(CommandContext cct, int numbertoclean)
+        [Command("clean"), Description("Removes the last X messages sent by StoreBot, requires the manage messages permission."), RequireUserPermissions(Permissions.ManageMessages)]
+        public async Task CleanAsync(CommandContext cct, [Description("Number of bot messages to delete")] int numbertoclean)
         {
             int messagesdeleted = 0;
             var messages = await cct.Channel.GetMessagesAsync(100);
@@ -230,7 +231,7 @@ namespace StoreBot
         }
 
         [Command("advancedpackages"), Description("Queries FE3 for packages for the specified ID, Environment and Locale.")]
-        public async Task AdvancePackagesAsync(CommandContext cct, [Description("Specify a product ID, Example: 9wzdncrfj3tj")] string ID, [Description("Specify an Environment Example: Production for Production, Int for Instance")] string environment, [Description("Specify a locale Example: US-EN for United States English")] string localestring)
+        public async Task AdvancedPackagesAsync(CommandContext cct, [Description("Specify a product ID, Example: 9wzdncrfj3tj")] string ID, [Description("Specify an Environment Example: Production for Production, Int for Instance")] string environment, [Description("Specify a locale Example: US-EN for United States English")] string localestring)
         {
             if (String.IsNullOrEmpty(ID) || String.IsNullOrEmpty(environment) || String.IsNullOrEmpty(localestring))
             {
