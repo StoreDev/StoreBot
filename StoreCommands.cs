@@ -38,7 +38,7 @@ namespace StoreBot
 
         }
 
-        [Command("clean"), Description("Removes the last X messages sent by StoreBot, requires the manage messages permission."), RequireUserPermissions(Permissions.ManageMessages)]
+        [Command("clean"), Description("Removes the last X messages sent by StoreBot, requires both the bot and the user to have the manage messages permission."), RequireUserPermissions(Permissions.ManageMessages)]
         public async Task CleanAsync(CommandContext cct, [Description("Number of bot messages to delete")] int numbertoclean)
         {
             int messagesdeleted = 0;
@@ -122,102 +122,109 @@ namespace StoreBot
                 //start typing indicator
                 await cct.TriggerTypingAsync();
                 //get all packages for the product.
-                var packages = await dcat.GetPackagesForProductAsync();
-                //iterate through all packages
-                foreach(PackageInstance package in packages)
+                if (dcat.ProductListing.Product.DisplaySkuAvailabilities[0].Sku.Properties.FulfillmentData != null)
                 {
-                    //temporarily hold the value of the new package in a seperate var in order to check if the field will be to long
-                    string packagelink= $"[{package.PackageMoniker}]({package.PackageUri})";
-                    //check if the combined lengths of the package list and new package link will not exceed the maximum field length of 1024 characters
-                    if ((packagelink.Length + packagelist.Length) >= 1024)
+                    var packages = await dcat.GetPackagesForProductAsync();
+                    //iterate through all packages
+                    foreach (PackageInstance package in packages)
                     {
-                        //if the combined lengths of the package list and new package link exceed 1024 characters
-                        //subtract the number of free characters being taken up by the new field
-                        freechars -= packagelist.Length + 1;
-                        // if the embed will exceed the max number of characters allowed (6000)
-                        if (freechars <= 0)
+                        //temporarily hold the value of the new package in a seperate var in order to check if the field will be to long
+                        string packagelink = $"[{package.PackageMoniker}]({package.PackageUri})";
+                        //check if the combined lengths of the package list and new package link will not exceed the maximum field length of 1024 characters
+                        if ((packagelink.Length + packagelist.Length) >= 1024)
                         {
-                            //build product embed
-                            productembedded.Build();
-                            //send product embed
-                            await cct.RespondAsync("", false, productembedded);
-                            //reset fields of product embed
-                            productembedded.RemoveFieldRange(0,productembedded.Fields.Count);
-                            //reset number of characters free in embed
-                            freechars = freecharsmax - packagelink.Length-1;
-                        }
-                        //push the packages as a field
-                        productembedded.AddField("‍", packagelist);
-                        //reset packagelist
-                        packagelist = packagelink;
-
-                    }
-                    else
-                    {
-                        //if the combined lengths of the package list and new package link DO NOT exceed 1024 characters
-                        packagelist += "\n" + packagelink;
-                    }
-                }
-                if (dcat.ProductListing.Product.DisplaySkuAvailabilities[0].Sku.Properties.Packages.Count > 0)
-                {
-                    if (dcat.ProductListing.Product.DisplaySkuAvailabilities[0].Sku.Properties.Packages.Count != 0)
-                    {
-                        //For some weird reason, some listings report having packages when really they don't have one hosted. This checks the child to see if the package is really null or not.
-                        if (!object.ReferenceEquals(dcat.ProductListing.Product.DisplaySkuAvailabilities[0].Sku.Properties.Packages[0].PackageDownloadUris, null))
-                        {
-                            foreach (var Package in dcat.ProductListing.Product.DisplaySkuAvailabilities[0].Sku.Properties.Packages[0].PackageDownloadUris)
+                            //if the combined lengths of the package list and new package link exceed 1024 characters
+                            //subtract the number of free characters being taken up by the new field
+                            freechars -= packagelist.Length + 1;
+                            // if the embed will exceed the max number of characters allowed (6000)
+                            if (freechars <= 0)
                             {
-                                //create new uri from package uri
-                                Uri PackageURL = new Uri(Package.Uri);
-                                //temporarily hold the value of the new package in a seperate var in order to check if the field will be to long
-                                string packagelink = $"[{PackageURL.Segments[PackageURL.Segments.Length - 1]}]({Package.Uri})";
-                                //check if the combined lengths of the package list and new package link will not exceed the maximum field length of 1024 characters
-                                if ((packagelink.Length + packagelist.Length) >= 1024)
-                                {
-                                    //if the combined lengths of the package list and new package link exceed 1024 characters
-                                    //subtract the number of free characters being taken up by the new field
-                                    freechars -= packagelist.Length + 1;
-                                    // if the embed will exceed the max number of characters allowed (6000)
-                                    if (freechars <= 0)
-                                    {
-                                        //build product embed
-                                        productembedded.Build();
-                                        //send product embed
-                                        await cct.RespondAsync("", false, productembedded);
-                                        //reset fields of product embed
-                                        productembedded.RemoveFieldRange(0, productembedded.Fields.Count);
-                                        //reset number of characters free in embed
-                                        freechars = freecharsmax - packagelink.Length - 1;
-                                    }
-                                    //push the packages as a field
-                                    productembedded.AddField("‍", packagelist);
-                                    //reset packagelist
-                                    packagelist = packagelink;
+                                //build product embed
+                                productembedded.Build();
+                                //send product embed
+                                await cct.RespondAsync("", false, productembedded);
+                                //reset fields of product embed
+                                productembedded.RemoveFieldRange(0, productembedded.Fields.Count);
+                                //reset number of characters free in embed
+                                freechars = freecharsmax - packagelink.Length - 1;
+                            }
+                            //push the packages as a field
+                            productembedded.AddField("‍", packagelist);
+                            //reset packagelist
+                            packagelist = packagelink;
 
-                                }
-                                else
+                        }
+                        else
+                        {
+                            //if the combined lengths of the package list and new package link DO NOT exceed 1024 characters
+                            packagelist += "\n" + packagelink;
+                        }
+                    }
+                    if (dcat.ProductListing.Product.DisplaySkuAvailabilities[0].Sku.Properties.Packages.Count > 0)
+                    {
+                        if (dcat.ProductListing.Product.DisplaySkuAvailabilities[0].Sku.Properties.Packages.Count != 0)
+                        {
+                            //For some weird reason, some listings report having packages when really they don't have one hosted. This checks the child to see if the package is really null or not.
+                            if (!object.ReferenceEquals(dcat.ProductListing.Product.DisplaySkuAvailabilities[0].Sku.Properties.Packages[0].PackageDownloadUris, null))
+                            {
+                                foreach (var Package in dcat.ProductListing.Product.DisplaySkuAvailabilities[0].Sku.Properties.Packages[0].PackageDownloadUris)
                                 {
-                                    //if the combined lengths of the package list and new package link DO NOT exceed 1024 characters
-                                    packagelist += "\n" + packagelink;
+                                    //create new uri from package uri
+                                    Uri PackageURL = new Uri(Package.Uri);
+                                    //temporarily hold the value of the new package in a seperate var in order to check if the field will be to long
+                                    string packagelink = $"[{PackageURL.Segments[PackageURL.Segments.Length - 1]}]({Package.Uri})";
+                                    //check if the combined lengths of the package list and new package link will not exceed the maximum field length of 1024 characters
+                                    if ((packagelink.Length + packagelist.Length) >= 1024)
+                                    {
+                                        //if the combined lengths of the package list and new package link exceed 1024 characters
+                                        //subtract the number of free characters being taken up by the new field
+                                        freechars -= packagelist.Length + 1;
+                                        // if the embed will exceed the max number of characters allowed (6000)
+                                        if (freechars <= 0)
+                                        {
+                                            //build product embed
+                                            productembedded.Build();
+                                            //send product embed
+                                            await cct.RespondAsync("", false, productembedded);
+                                            //reset fields of product embed
+                                            productembedded.RemoveFieldRange(0, productembedded.Fields.Count);
+                                            //reset number of characters free in embed
+                                            freechars = freecharsmax - packagelink.Length - 1;
+                                        }
+                                        //push the packages as a field
+                                        productembedded.AddField("‍", packagelist);
+                                        //reset packagelist
+                                        packagelist = packagelink;
+
+                                    }
+                                    else
+                                    {
+                                        //if the combined lengths of the package list and new package link DO NOT exceed 1024 characters
+                                        packagelist += "\n" + packagelink;
+                                    }
                                 }
                             }
                         }
+
+
                     }
-
-
+                    //check if the last field will not exceed the maximum number of characters per embed
+                    if (freechars <= 0)
+                    {
+                        //build product embed
+                        productembedded.Build();
+                        //send product embed
+                        await cct.RespondAsync("", false, productembedded);
+                        //reset fields of product embed
+                        productembedded.RemoveFieldRange(0, productembedded.Fields.Count);
+                    }
+                    //push the last field
+                    productembedded.AddField("‍", packagelist);
                 }
-                //check if the last field will not exceed the maximum number of characters per embed
-                if (freechars <= 0)
+                else
                 {
-                    //build product embed
-                    productembedded.Build();
-                    //send product embed
-                    await cct.RespondAsync("", false, productembedded);
-                    //reset fields of product embed
-                    productembedded.RemoveFieldRange(0, productembedded.Fields.Count);
+                    productembedded.Description = "No packages were found";
                 }
-                //push the last field
-                productembedded.AddField("‍", packagelist);
                 //build product embed
                 productembedded.Build();
                 //send product embed
