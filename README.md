@@ -1,4 +1,4 @@
-# StoreBot 
+# StoreBot [![HitCount](http://hits.dwyl.com/StoreDev/StoreBot.svg)](http://hits.dwyl.com/StoreDev/StoreBot)
 StoreBot is a Discord bot that makes use of [StoreLib](https://github.com/TitleOS/StoreLib). Current features include generation of package urls from a given product listing, conversation of the various Store IDs, and querying details about a listing.
 
 ![Advanced Query Command](https://i.imgur.com/sUd7RkM.png)
