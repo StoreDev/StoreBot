@@ -495,6 +495,48 @@ namespace StoreBot
 
         }
 
+        [Command("search"), Description("Enumerate content via search query")]
+        public async Task SearchAsync(CommandContext cct, [Description("Query string")] string query, [Description("Device family")] string deviceFamily)
+        {
+            if (String.IsNullOrEmpty(query) || String.IsNullOrEmpty(deviceFamily))
+            {
+                await cct.RespondAsync("Please supply all required arguments. Example: search \"Halo\" Xbox");
+                return;
+            }
+
+            if (!Enum.TryParse(deviceFamily, out DeviceFamily deviceFamilyEnum))
+            {
+                await cct.RespondAsync($"Invalid DeviceFamily. Valid choices: [{string.Join(",", Enum.GetNames(typeof(DeviceFamily)))}] ... you provided DeviceFamily: {deviceFamily}.");
+                return;
+            }
+
+            try
+            {
+                DCatSearch results = await DisplayCatalogHandler.SearchDCATAsync(query, deviceFamilyEnum);
+                var searchresultsembedded = new DiscordEmbedBuilder()
+                {
+                    Title = "Search results:",
+                    Footer = new Discord​Embed​Builder.EmbedFooter() { Text = $"Result count: {results.TotalResultCount}, Device family: {deviceFamilyEnum}" },
+                    Color = DiscordColor.Gold
+                };
+
+                foreach (Result res in results.Results)
+                {
+                    foreach (Product prod in res.Products)
+                    {
+                        searchresultsembedded.AddField($"{prod.Title} {prod.Type}", prod.ProductId);
+                    }
+                }
+
+                searchresultsembedded.Build();
+                await cct.RespondAsync("", false, searchresultsembedded);
+            }
+            catch (Exception ex)
+            {
+                await cct.RespondAsync($"Exception while executing SearchAsync: {ex.Message}");
+            }
+        }
+
         [Command("convert"), Description("Convert the provided id to other formats")]
         public async Task convertid(CommandContext cct, [Description("package ID")] string ID, [Description("Optionally set the identifer type, The options are:\nProductID, XboxTitleID, PackageFamilyName, ContentID, LegacyWindowsPhoneProductID, LegacyWindowsStoreProductID and LegacyXboxProductID")] string identifertype="")
         {
