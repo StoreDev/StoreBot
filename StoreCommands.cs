@@ -512,7 +512,8 @@ namespace StoreBot
 
             try
             {
-                DCatSearch results = await DisplayCatalogHandler.SearchDCATAsync(query, deviceFamilyEnum);
+                DisplayCatalogHandler dcat = DisplayCatalogHandler.ProductionConfig();
+                DCatSearch results = await dcat.SearchDCATAsync(query, deviceFamilyEnum);
                 var searchresultsembedded = new DiscordEmbedBuilder()
                 {
                     Title = "Search results:",
