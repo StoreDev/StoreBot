@@ -34,6 +34,12 @@ Once StoreBot logs into Discord, invite the bot to the server of your choice, th
 @StoreBot submittoken MSAOrXBLToken - See [StoreToken](https://github.com/StoreDev/StoreToken) on how to obtain your token. This command can only be used via Direct Message to the bot. Once your token has been submitted, it will be used for future queries (that originate from your user).
 ```
 
+### Docker instructions:
+#### Building the Docker image:
+```docker build -t storebot_private .```
+#### Running the Docker image:
+```docker run -e storebottoken -it --rm --name storebot storebot_private```
+
 
 #### Dependencies
 [StoreLib](https://github.com/StoreDev/StoreLib)
