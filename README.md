@@ -1,4 +1,4 @@
-# StoreBot [![HitCount](http://hits.dwyl.com/StoreDev/StoreBot.svg)](http://hits.dwyl.com/StoreDev/StoreBot)
+# StoreBot [![HitCount](http://hits.dwyl.com/StoreDev/StoreBot.svg)](http://hits.dwyl.com/StoreDev/StoreBot) ![.NET Core](https://github.com/StoreDev/StoreBot/workflows/.NET%20Core/badge.svg)
 StoreBot is a Discord bot that makes use of [StoreLib](https://github.com/StoreDev/StoreLib). Current features include generation of package urls from a given product listing, conversation of the various Store IDs, and querying details about a listing.
 
 ![Advanced Query Command](https://i.imgur.com/sUd7RkM.png)
@@ -33,6 +33,12 @@ Once StoreBot logs into Discord, invite the bot to the server of your choice, th
 ```
 @StoreBot submittoken MSAOrXBLToken - See [StoreToken](https://github.com/StoreDev/StoreToken) on how to obtain your token. This command can only be used via Direct Message to the bot. Once your token has been submitted, it will be used for future queries (that originate from your user).
 ```
+
+### Docker instructions:
+#### Building the Docker image:
+```docker build -t storebot_docker .```
+#### Running the Docker image:
+```docker run -e storebottoken -it --rm --name storebot storebot_docker```
 
 
 #### Dependencies
