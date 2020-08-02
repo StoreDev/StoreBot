@@ -36,9 +36,9 @@ Once StoreBot logs into Discord, invite the bot to the server of your choice, th
 
 ### Docker instructions:
 #### Building the Docker image:
-```docker build -t storebot_private .```
+```docker build -t storebot_docker .```
 #### Running the Docker image:
-```docker run -e storebottoken -it --rm --name storebot storebot_private```
+```docker run -e storebottoken -it --rm --name storebot storebot_docker```
 
 
 #### Dependencies
