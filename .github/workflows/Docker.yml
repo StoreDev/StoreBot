@@ -9,5 +9,6 @@ jobs:
 
     steps:
      - run: |
+        dir
         docker build -t storedev/store-bot:${{ github.sha }} .
         docker push storedev/store-bot:${{ github.sha }}
