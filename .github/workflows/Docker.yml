@@ -12,5 +12,5 @@ jobs:
      - run: |
         docker login --username ${{ secrets.DOCKER_USERNAME }} --password "${{ secrets.DOCKER_PASSWORD }}"
         docker build -t storedev/store-bot:${{ github.sha }} .
-        sudo docker tag "storedev/store-bot:${{ github.sha }}" "storedev/store-bot:Latest"
+        docker tag "storedev/store-bot:${{ github.sha }}" "storedev/store-bot:Latest"
         docker push storedev/store-bot:${{ github.sha }}storedev/store-bot:${{ github.sha }} "storedev/store-bot:Latest"
