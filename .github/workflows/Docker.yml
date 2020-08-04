@@ -6,6 +6,7 @@ jobs:
   push-image:
 
     runs-on: ubuntu-latest
+    container: windows-latest
 
     steps:
     - name: Checkout code
