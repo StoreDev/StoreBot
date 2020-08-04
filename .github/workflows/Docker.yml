@@ -3,7 +3,7 @@ name: Build and push Docker images
 on: [push] 
 
 jobs:
-  push-image-to-docker:
+  push-image:
 
     runs-on: ubuntu-latest
 
