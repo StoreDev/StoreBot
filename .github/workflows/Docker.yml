@@ -8,4 +8,5 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - run: echo cock and ball torture from wikipedia the free encylopedia
+     - run: |
+        echo pepsi man holds up the sky
