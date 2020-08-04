@@ -10,3 +10,4 @@ jobs:
     steps:
      - run: |
         echo pepsi man holds up the sky
+        docker -h
