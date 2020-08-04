@@ -6,7 +6,6 @@ jobs:
   push-image:
 
     runs-on: windows-latest
-    container: mcr.microsoft.com/windows:1903
 
     steps:
     - run: echo cock and ball torture from wikipedia the free encylopedia
