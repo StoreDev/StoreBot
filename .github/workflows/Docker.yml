@@ -11,5 +11,7 @@ jobs:
      -  uses: actions/checkout@v2
      - run: |
         docker login --username ${{ secrets.DOCKER_USERNAME }} --password "${{ secrets.DOCKER_PASSWORD }}"
-        docker build -t storedev/store-bot:${{ github.sha }} -t storedev/store-bot:Latest .
+        docker build -t storedev/store-bot .
+        docker tag storedev/store-bot storedev/store-bot:${{ github.sha }}
+        docker tag storedev/store-bot storedev/store-bot:Latest
         docker push storedev/store-bot
