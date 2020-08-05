@@ -1,8 +1,8 @@
 # StoreBot
 
 [![GitHub stars](https://img.shields.io/github/stars/StoreDev/StoreBot?style=social)](https://github.com/StoreDev/StoreBot)
-[![GitHub Workflow - Docker](https://img.shields.io/github/workflow/status/StoreDev/StoreBot/docker?label=docker)](https://github.com/StoreDev/StoreBot/actions?query=workflow%3A%22docker)
-[![GitHub Workflow - Build](https://img.shields.io/github/workflow/status/StoreDev/StoreBot/build?label=build)](https://github.com/StoreDev/StoreBot/actions?query=workflow%3A%22build)
+[![GitHub Workflow - Docker](https://img.shields.io/github/workflow/status/StoreDev/StoreBot/docker?label=docker)](https://github.com/StoreDev/StoreBot/actions?query=workflow%3Adocker)
+[![GitHub Workflow - Build](https://img.shields.io/github/workflow/status/StoreDev/StoreBot/build?label=build)](https://github.com/StoreDev/StoreBot/actions?query=workflow%3Abuild)
 [![Docker Pulls](https://img.shields.io/docker/pulls/storedev/store-bot)](https://hub.docker.com/r/storedev/store-bot)
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/storedev/storebot)](https://github.com/StoreDev/StoreBot/releases)
 
