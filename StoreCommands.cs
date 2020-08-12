@@ -582,7 +582,7 @@ namespace StoreBot
             await dcat.QueryDCATAsync(ID,IDType);
             if (dcat.IsFound)
             {
-                if(dcat.ProductListing.Product != null) //One day ill fix the mess that is the StoreLib JSON, one day.
+                if(dcat.ProductListing.Product != null) //One day ill fix the mess that is the StoreLib JSON, one day. Yeah mate just like how one day i'll learn how to fly
                 {
                     dcat.ProductListing.Products = new(); 
                     dcat.ProductListing.Products.Add(dcat.ProductListing.Product);
@@ -608,7 +608,7 @@ namespace StoreBot
                     productembedded.AddField($"PackageFamilyName:", dcat.ProductListing.Products[0].Properties.PackageFamilyName); //Add the package family name
 
                 }
-                catch(Exception ex) { };
+                catch(Exception ex) { Console.WriteLine(ex); };
                 productembedded.Build();
                 await cct.RespondAsync("", false, productembedded);
             }
