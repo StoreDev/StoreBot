@@ -1,4 +1,4 @@
-﻿using DSharpPlus;
+using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
@@ -16,11 +16,26 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Net.Mime;
 
 namespace StoreBot
 {
     public class StoreCommands : BaseCommandModule
     {
+        public String BytesToString(long byteCount)
+        {
+            string[] suf = { "B", "KB", "MB", "GB", "TB", "PB", "EB" }; //Longs run out around EB
+            if (byteCount == 0)
+                return "0" + suf[0];
+            long bytes = Math.Abs(byteCount);
+            int place = Convert.ToInt32(Math.Floor(Math.Log(bytes, 1024)));
+            double num = Math.Round(bytes / Math.Pow(1024, place), 1);
+            return (Math.Sign(byteCount) * num).ToString() + suf[place];
+        }
+        private static readonly MSHttpClient _httpClient = new MSHttpClient();
+
         [Command("info"), Description("Returns info about the current StoreBot Instance")]
         public async Task InfoAsync(CommandContext cct)
         {
@@ -128,8 +143,34 @@ namespace StoreBot
                     //iterate through all packages
                     foreach (PackageInstance package in packages)
                     {
-                        //temporarily hold the value of the new package in a seperate var in order to check if the field will be to long
-                        string packagelink = $"[{package.PackageMoniker}]({package.PackageUri})";
+                        HttpRequestMessage httpRequest = new HttpRequestMessage();
+                        httpRequest.RequestUri = package.PackageUri;
+                        //httpRequest.Method = HttpMethod.Get;
+                        httpRequest.Method = HttpMethod.Head;
+                        httpRequest.Headers.Add("Connection", "Keep-Alive");
+                        httpRequest.Headers.Add("Accept", "*/*");
+                        //httpRequest.Headers.Add("Range", "bytes=0-1");
+                        httpRequest.Headers.Add("User-Agent", "Microsoft-Delivery-Optimization/10.0");
+                        HttpResponseMessage httpResponse = await _httpClient.SendAsync(httpRequest, new System.Threading.CancellationToken());
+                        HttpHeaders headers = httpResponse.Content.Headers;
+                        IEnumerable<string> values;
+                        string packagelink;
+                        if (headers.TryGetValues("Content-Disposition", out values))
+                        {
+                            ContentDisposition contentDisposition = new ContentDisposition(values.First());
+                            string filename = contentDisposition.FileName;
+                            packagelink = $"[{filename}]({package.PackageUri})";
+                        }
+                        else
+                        {
+                            //temporarily hold the value of the new package in a seperate var in order to check if the field will be too long
+                            packagelink = $"[{package.PackageMoniker}]({package.PackageUri})";
+                        }
+                        if (headers.TryGetValues("Content-Length", out values))
+                        {
+                            string filesize = BytesToString(long.Parse(values.FirstOrDefault()));
+                            packagelink += $": {filesize}";
+                        }
                         //check if the combined lengths of the package list and new package link will not exceed the maximum field length of 1024 characters
                         if ((packagelink.Length + packagelist.Length) >= 1024)
                         {
@@ -301,8 +342,34 @@ namespace StoreBot
                 //iterate through all packages
                 foreach (PackageInstance package in packages)
                 {
-                    //temporarily hold the value of the new package in a seperate var in order to check if the field will be to long
-                    string packagelink = $"[{package.PackageMoniker}]({package.PackageUri})";
+                    HttpRequestMessage httpRequest = new HttpRequestMessage();
+                    httpRequest.RequestUri = package.PackageUri;
+                    //httpRequest.Method = HttpMethod.Get;
+                    httpRequest.Method = HttpMethod.Head;
+                    httpRequest.Headers.Add("Connection", "Keep-Alive");
+                    httpRequest.Headers.Add("Accept", "*/*");
+                    //httpRequest.Headers.Add("Range", "bytes=0-1");
+                    httpRequest.Headers.Add("User-Agent", "Microsoft-Delivery-Optimization/10.0");
+                    HttpResponseMessage httpResponse = await _httpClient.SendAsync(httpRequest, new System.Threading.CancellationToken());
+                    HttpHeaders headers = httpResponse.Content.Headers;
+                    IEnumerable<string> values;
+                    string packagelink;
+                    if (headers.TryGetValues("Content-Disposition", out values))
+                    {
+                        ContentDisposition contentDisposition = new ContentDisposition(values.First());
+                        string filename = contentDisposition.FileName;
+                        packagelink = $"[{filename}]({package.PackageUri})";
+                    }
+                    else
+                    {
+                        //temporarily hold the value of the new package in a seperate var in order to check if the field will be too long
+                        packagelink = $"[{package.PackageMoniker}]({package.PackageUri})";
+                    }
+                    if (headers.TryGetValues("Content-Length", out values))
+                    {
+                        string filesize = BytesToString(long.Parse(values.FirstOrDefault()));
+                        packagelink += $": {filesize}";
+                    }
                     //check if the combined lengths of the package list and new package link will not exceed the maximum field length of 1024 characters
                     if ((packagelink.Length + packagelist.Length) >= 1024)
                     {
