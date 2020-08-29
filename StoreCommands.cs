@@ -58,18 +58,18 @@ namespace StoreBot
         {
             int messagesdeleted = 0;
             var messages = await cct.Channel.GetMessagesAsync(100);
-            foreach(var message in messages)
+            foreach (var message in messages)
             {
-                if(messagesdeleted >= numbertoclean)
+                if (messagesdeleted >= numbertoclean)
                 {
                     var finishedmessage = await cct.RespondAsync("Finished cleaning.");
                     await Task.Delay(3000);
                     await finishedmessage.DeleteAsync();
                     return;
                 }
-                else if(message.Author == cct.Client.CurrentUser || message.MentionedUsers.Contains(cct.Client.CurrentUser))
+                else if (message.Author == cct.Client.CurrentUser || message.MentionedUsers.Contains(cct.Client.CurrentUser))
                 {
-                   await message.DeleteAsync();
+                    await message.DeleteAsync();
                     messagesdeleted++;
                 }
             }
@@ -93,14 +93,13 @@ namespace StoreBot
         {
             DisplayCatalogHandler dcat = DisplayCatalogHandler.ProductionConfig();
             //Push the input id through a Regex filter in order to take the onestoreid from the storepage url
-            if(new Regex(@"[a-zA-Z0-9]{12}").Matches(ID).Count == 0)
+            if (new Regex(@"[a-zA-Z0-9]{12}").Matches(ID).Count == 0)
             {
                 return;
             }
             if (Program.TokenDictionary.ContainsKey(cct.User.Id))
             {
                 await dcat.QueryDCATAsync(new Regex(@"[a-zA-Z0-9]{12}").Matches(ID)[0].Value, Program.TokenDictionary.GetValueOrDefault(cct.User.Id));
-
             }
             else
             {
@@ -214,6 +213,22 @@ namespace StoreBot
                                     Uri PackageURL = new Uri(Package.Uri);
                                     //temporarily hold the value of the new package in a seperate var in order to check if the field will be to long
                                     string packagelink = $"[{PackageURL.Segments[PackageURL.Segments.Length - 1]}]({Package.Uri})";
+                                    HttpRequestMessage httpRequest = new HttpRequestMessage();
+                                    httpRequest.RequestUri = PackageURL;
+                                    //httpRequest.Method = HttpMethod.Get;
+                                    httpRequest.Method = HttpMethod.Head;
+                                    httpRequest.Headers.Add("Connection", "Keep-Alive");
+                                    httpRequest.Headers.Add("Accept", "*/*");
+                                    //httpRequest.Headers.Add("Range", "bytes=0-1");
+                                    httpRequest.Headers.Add("User-Agent", "Microsoft-Delivery-Optimization/10.0");
+                                    HttpResponseMessage httpResponse = await _httpClient.SendAsync(httpRequest, new System.Threading.CancellationToken());
+                                    HttpHeaders headers = httpResponse.Content.Headers;
+                                    IEnumerable<string> values;
+                                    if (headers.TryGetValues("Content-Length", out values))
+                                    {
+                                        string filesize = BytesToString(long.Parse(values.FirstOrDefault()));
+                                        packagelink += $": {filesize}";
+                                    }
                                     //check if the combined lengths of the package list and new package link will not exceed the maximum field length of 1024 characters
                                     if ((packagelink.Length + packagelist.Length) >= 1024)
                                     {
@@ -260,7 +275,14 @@ namespace StoreBot
                         productembedded.RemoveFieldRange(0, productembedded.Fields.Count);
                     }
                     //push the last field
-                    productembedded.AddField("‍", packagelist);
+                    if (!string.IsNullOrWhiteSpace(packagelist))
+                    {
+                        productembedded.AddField("‍", packagelist);
+                    }
+                    if (productembedded.Fields.Count == 0)
+                    {
+                        productembedded.Description = "No packages were found";
+                    }
                 }
                 else
                 {
@@ -413,6 +435,22 @@ namespace StoreBot
                                 Uri PackageURL = new Uri(Package.Uri);
                                 //temporarily hold the value of the new package in a seperate var in order to check if the field will be to long
                                 string packagelink = $"[{PackageURL.Segments[PackageURL.Segments.Length - 1]}]({Package.Uri})";
+                                HttpRequestMessage httpRequest = new HttpRequestMessage();
+                                httpRequest.RequestUri = PackageURL;
+                                //httpRequest.Method = HttpMethod.Get;
+                                httpRequest.Method = HttpMethod.Head;
+                                httpRequest.Headers.Add("Connection", "Keep-Alive");
+                                httpRequest.Headers.Add("Accept", "*/*");
+                                //httpRequest.Headers.Add("Range", "bytes=0-1");
+                                httpRequest.Headers.Add("User-Agent", "Microsoft-Delivery-Optimization/10.0");
+                                HttpResponseMessage httpResponse = await _httpClient.SendAsync(httpRequest, new System.Threading.CancellationToken());
+                                HttpHeaders headers = httpResponse.Content.Headers;
+                                IEnumerable<string> values;
+                                if (headers.TryGetValues("Content-Length", out values))
+                                {
+                                    string filesize = BytesToString(long.Parse(values.FirstOrDefault()));
+                                    packagelink += $": {filesize}";
+                                }
                                 //check if the combined lengths of the package list and new package link will not exceed the maximum field length of 1024 characters
                                 if ((packagelink.Length + packagelist.Length) >= 1024)
                                 {
@@ -484,7 +522,7 @@ namespace StoreBot
             }
             bool marketresult = Enum.TryParse(localestring.Split('-')[0], out Market market);
             bool langresult = Enum.TryParse(localestring.Split('-')[1].ToLower(), out Lang lang);
-            if(!marketresult || !langresult)
+            if (!marketresult || !langresult)
             {
                 await cct.RespondAsync($"Invalid Market or Lang specified. Example: US-EN for United States English, you provided Market {localestring.Split('-')[0]} and Language {localestring.Split('-')[1]}");
                 return;
@@ -516,10 +554,10 @@ namespace StoreBot
                 var productembedded = new DiscordEmbedBuilder()
                 {
                     Title = "App Info:",
-                    Footer = new Discord​Embed​Builder.EmbedFooter() { Text = $"{customizedhandler.ProductListing.Product.LocalizedProperties[0].ProductTitle} - {customizedhandler.ProductListing.Product.LocalizedProperties[0].PublisherName}", IconUrl= customizedhandler.ProductListing.Product.LocalizedProperties[0].Images[0].Uri.Replace("//", "https://") },
+                    Footer = new Discord​Embed​Builder.EmbedFooter() { Text = $"{customizedhandler.ProductListing.Product.LocalizedProperties[0].ProductTitle} - {customizedhandler.ProductListing.Product.LocalizedProperties[0].PublisherName}", IconUrl = customizedhandler.ProductListing.Product.LocalizedProperties[0].Images[0].Uri.Replace("//", "https://") },
                     Color = DiscordColor.Gold
                 };
-                if(customizedhandler.ProductListing.Product.LocalizedProperties[0].ProductDescription.Length < 1023)
+                if (customizedhandler.ProductListing.Product.LocalizedProperties[0].ProductDescription.Length < 1023)
                 {
                     productembedded.AddField("Description:", customizedhandler.ProductListing.Product.LocalizedProperties[0].ProductDescription);
 
@@ -546,7 +584,7 @@ namespace StoreBot
                 }
                 if (customizedhandler.ProductListing.Product.DisplaySkuAvailabilities[0].Sku.Properties.FulfillmentData != null)
                 {
-                    if(customizedhandler.ProductListing.Product.DisplaySkuAvailabilities[0].Sku.Properties.Packages[0].KeyId != null)
+                    if (customizedhandler.ProductListing.Product.DisplaySkuAvailabilities[0].Sku.Properties.Packages[0].KeyId != null)
                     {
                         productembedded.AddField("EAppx Key ID:", customizedhandler.ProductListing.Product.DisplaySkuAvailabilities[0].Sku.Properties.Packages[0].KeyId);
                     }
@@ -606,17 +644,17 @@ namespace StoreBot
         }
 
         [Command("convert"), Description("Convert the provided id to other formats")]
-        public async Task convertid(CommandContext cct, [Description("package ID")] string ID, [Description("Optionally set the identifer type, The options are:\nProductID, XboxTitleID, PackageFamilyName, ContentID, LegacyWindowsPhoneProductID, LegacyWindowsStoreProductID and LegacyXboxProductID")] string identifertype="")
+        public async Task convertid(CommandContext cct, [Description("package ID")] string ID, [Description("Optionally set the identifer type, The options are:\nProductID, XboxTitleID, PackageFamilyName, ContentID, LegacyWindowsPhoneProductID, LegacyWindowsStoreProductID and LegacyXboxProductID")] string identifertype = "")
         {
             DisplayCatalogHandler dcat = DisplayCatalogHandler.ProductionConfig();
             IdentiferType IDType = IdentiferType.XboxTitleID;
             switch (identifertype)
             {
                 case "":
-                    if (new Regex(@"[a-zA-Z0-9]{12}").IsMatch(ID)) 
+                    if (new Regex(@"[a-zA-Z0-9]{12}").IsMatch(ID))
                     {
-                        IDType = IdentiferType.ProductID; 
-                    } 
+                        IDType = IdentiferType.ProductID;
+                    }
                     else if (new Regex("[a-zA-z0-9]+[.]+[a-zA-z0-9]+[_]+[a-zA-z0-9]").IsMatch(ID))
                     {
                         IDType = IdentiferType.PackageFamilyName;
@@ -646,17 +684,18 @@ namespace StoreBot
                     break;
 
             }
-            await dcat.QueryDCATAsync(ID,IDType);
+            await dcat.QueryDCATAsync(ID, IDType);
             if (dcat.IsFound)
             {
-                if(dcat.ProductListing.Product != null) //One day ill fix the mess that is the StoreLib JSON, one day. Yeah mate just like how one day i'll learn how to fly
+                if (dcat.ProductListing.Product != null) //One day ill fix the mess that is the StoreLib JSON, one day. Yeah mate just like how one day i'll learn how to fly
                 {
-                    dcat.ProductListing.Products = new(); 
+                    dcat.ProductListing.Products = new();
                     dcat.ProductListing.Products.Add(dcat.ProductListing.Product);
                 }
                 //start typing indicator
                 await cct.TriggerTypingAsync();
-                if (dcat.ProductListing.Products[0].LocalizedProperties[0].Images[0].Uri.StartsWith("//")){ //Some apps have a broken url, starting with a //, this removes that slash and replaces it with proper https.
+                if (dcat.ProductListing.Products[0].LocalizedProperties[0].Images[0].Uri.StartsWith("//"))
+                { //Some apps have a broken url, starting with a //, this removes that slash and replaces it with proper https.
                     dcat.ProductListing.Products[0].LocalizedProperties[0].Images[0].Uri = dcat.ProductListing.Products[0].LocalizedProperties[0].Images[0].Uri.Replace("//", "https://");
                 }
                 var productembedded = new DiscordEmbedBuilder()
@@ -675,7 +714,7 @@ namespace StoreBot
                     productembedded.AddField($"PackageFamilyName:", dcat.ProductListing.Products[0].Properties.PackageFamilyName); //Add the package family name
 
                 }
-                catch(Exception ex) { Console.WriteLine(ex); };
+                catch (Exception ex) { Console.WriteLine(ex); };
                 productembedded.Build();
                 await cct.RespondAsync("", false, productembedded);
             }
