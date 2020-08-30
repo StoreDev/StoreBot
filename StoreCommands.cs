@@ -308,14 +308,14 @@ namespace StoreBot
                 await cct.RespondAsync("Please supply all required arguments. Example: advancedpackages 9wzdncrfj3tj Int US-EN");
                 return;
             }
-            bool marketresult = Enum.TryParse(localestring.Split('-')[0], out Market market);
-            bool langresult = Enum.TryParse(localestring.Split('-')[1].ToLower(), out Lang lang);
+            bool marketresult = Enum.TryParse(localestring.Split('-')[0], true, out Market market);
+            bool langresult = Enum.TryParse(localestring.Split('-')[1].ToLower(), true, out Lang lang);
             if (!marketresult || !langresult)
             {
                 await cct.RespondAsync($"Invalid Market or Lang specified. Example: US-EN for United States English, you provided Market {localestring.Split('-')[0]} and Language {localestring.Split('-')[1]}");
                 return;
             }
-            bool environmentresult = Enum.TryParse(environment, out DCatEndpoint env);
+            bool environmentresult = Enum.TryParse(environment, true, out DCatEndpoint env);
             if (!environmentresult)
             {
                 await cct.RespondAsync($"Invalid Environment specified. Example: Production for Production, Int for Instance. You provided {environment}");
@@ -520,14 +520,14 @@ namespace StoreBot
                 await cct.RespondAsync("Please supply all required arguments. Example: advancedquery 9wzdncrfj3tj Int US-EN");
                 return;
             }
-            bool marketresult = Enum.TryParse(localestring.Split('-')[0], out Market market);
-            bool langresult = Enum.TryParse(localestring.Split('-')[1].ToLower(), out Lang lang);
+            bool marketresult = Enum.TryParse(localestring.Split('-')[0], true, out Market market);
+            bool langresult = Enum.TryParse(localestring.Split('-')[1].ToLower(), true, out Lang lang);
             if (!marketresult || !langresult)
             {
                 await cct.RespondAsync($"Invalid Market or Lang specified. Example: US-EN for United States English, you provided Market {localestring.Split('-')[0]} and Language {localestring.Split('-')[1]}");
                 return;
             }
-            bool environmentresult = Enum.TryParse(environment, out DCatEndpoint env);
+            bool environmentresult = Enum.TryParse(environment, true, out DCatEndpoint env);
             if (!environmentresult)
             {
                 await cct.RespondAsync($"Invalid Environment specified. Example: Production for Production, Int for Instance. You provided {environment}");
@@ -609,7 +609,7 @@ namespace StoreBot
                 return;
             }
 
-            if (!Enum.TryParse(deviceFamily, out DeviceFamily deviceFamilyEnum))
+            if (!Enum.TryParse(deviceFamily, true, out DeviceFamily deviceFamilyEnum))
             {
                 await cct.RespondAsync($"Invalid DeviceFamily. Valid choices: [{string.Join(",", Enum.GetNames(typeof(DeviceFamily)))}] ... you provided DeviceFamily: {deviceFamily}.");
                 return;
