@@ -109,7 +109,7 @@ namespace StoreBot
             {
                 if (dcat.ProductListing.Product != null) //One day ill fix the mess that is the StoreLib JSON, one day.
                 {
-                    dcat.ProductListing.Products = new();
+                    dcat.ProductListing.Products = new List<Product>();
                     dcat.ProductListing.Products.Add(dcat.ProductListing.Product);
                 }
                 if (dcat.ProductListing.Products[0].LocalizedProperties[0].Images[0].Uri.StartsWith("//"))
@@ -337,7 +337,7 @@ namespace StoreBot
             {
                 if (dcat.ProductListing.Product != null) //One day ill fix the mess that is the StoreLib JSON, one day.
                 {
-                    dcat.ProductListing.Products = new();
+                    dcat.ProductListing.Products = new List<Product>();
                     dcat.ProductListing.Products.Add(dcat.ProductListing.Product);
                 }
                 //configure product embed 
@@ -548,7 +548,7 @@ namespace StoreBot
             {
                 if (customizedhandler.ProductListing.Product != null) //One day ill fix the mess that is the StoreLib JSON, one day.
                 {
-                    customizedhandler.ProductListing.Products = new();
+                    customizedhandler.ProductListing.Products = new List<Product>();
                     customizedhandler.ProductListing.Products.Add(customizedhandler.ProductListing.Product);
                 }
                 var productembedded = new DiscordEmbedBuilder()
@@ -689,7 +689,7 @@ namespace StoreBot
             {
                 if (dcat.ProductListing.Product != null) //One day ill fix the mess that is the StoreLib JSON, one day. Yeah mate just like how one day i'll learn how to fly
                 {
-                    dcat.ProductListing.Products = new();
+                    dcat.ProductListing.Products = new List<Product>();
                     dcat.ProductListing.Products.Add(dcat.ProductListing.Product);
                 }
                 //start typing indicator

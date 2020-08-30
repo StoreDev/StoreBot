@@ -17,7 +17,7 @@ namespace StoreBot
 {
     public class Program
     {
-        public static Dictionary<ulong, string> TokenDictionary = new();
+        public static Dictionary<ulong, string> TokenDictionary = new Dictionary<ulong, string>();
 
         public struct ConfigJson
         {
@@ -60,7 +60,7 @@ namespace StoreBot
             string token = Environment.GetEnvironmentVariable("storebottoken");
             if (!String.IsNullOrEmpty(token))
             {
-                DiscordConfiguration configenv = new()
+                DiscordConfiguration configenv = new DiscordConfiguration()
                 {
                     Token = token,
                     TokenType = TokenType.Bot,
@@ -79,7 +79,7 @@ namespace StoreBot
                 }
             }
             var cfgjson = JsonConvert.DeserializeObject<ConfigJson>(json);
-            DiscordConfiguration config = new()
+            DiscordConfiguration config = new DiscordConfiguration()
             {
                 Token = cfgjson.Token,
                 TokenType = TokenType.Bot,

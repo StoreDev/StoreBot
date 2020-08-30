@@ -12,7 +12,7 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 5.0.100-preview.7.20366.6
+        dotnet-version: '3.1.x'
     - name: Install dependencies
       run: dotnet restore
     - name: Build
@@ -21,9 +21,9 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: storebot.zip-${{ github.sha }}
-        path: bin/Release/net5.0
+        path: bin/Release/netcoreapp3.1
     - name: Generate zip for release
-      run: tar.exe -a -c -f Storebot-${{ github.sha }}.zip  bin\Release\net5.0
+      run: tar.exe -a -c -f Storebot-${{ github.sha }}.zip  bin\Release\netcoreapp3.1
     - name: create release
       id: create_release
       uses: actions/create-release@v1
