@@ -1,11 +1,11 @@
 name: build
 
-on: [push] 
+on: ['push', 'pull_request'] 
 
 jobs:
   build:
 
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
@@ -20,28 +20,34 @@ jobs:
     - name: Upload artifact
       uses: actions/upload-artifact@v2
       with:
-        name: storebot.zip-${{ github.sha }}
+        name: storebot-${{ github.sha }}.zip
         path: bin/Release/netcoreapp3.1
+    - name: Get the version tag
+      id: get_tag
+      run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
     - name: Generate zip for release
-      run: tar.exe -a -c -f Storebot-${{ github.sha }}.zip  bin\Release\netcoreapp3.1
+      if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+      run: zip -j Storebot-${{ steps.get_tag.outputs.VERSION }}.zip ./bin/Release/netcoreapp3.1/* ./README.md ./config.json
     - name: create release
+      if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
       id: create_release
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: V${{ github.run_number }}
-        release_name: Release V${{ github.run_number }}
+        tag_name: ${{ steps.get_tag.outputs.VERSION }}
+        release_name: Release ${{ steps.get_tag.outputs.VERSION }}
         draft: false
         prerelease: false
     - name: Upload Release Asset
+      if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
       id: upload-release-asset 
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
-        asset_path: ./Storebot-${{ github.sha }}.zip
-        asset_name: Storebot-${{ github.sha }}.zip
+        asset_path: ./Storebot-${{ steps.get_tag.outputs.VERSION }}.zip
+        asset_name: Storebot-${{ steps.get_tag.outputs.VERSION }}.zip
         asset_content_type: application/zip
       
