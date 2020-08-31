@@ -23,8 +23,10 @@ jobs:
         name: storebot.zip-${{ github.sha }}
         path: bin/Release/netcoreapp3.1
     - name: Generate zip for release
+      if: github.ref == 'refs/heads/master'
       run: tar.exe -a -c -f Storebot-${{ github.sha }}.zip  bin\Release\netcoreapp3.1
     - name: create release
+      if: github.ref == 'refs/heads/master'
       id: create_release
       uses: actions/create-release@v1
       env:
@@ -35,6 +37,7 @@ jobs:
         draft: false
         prerelease: false
     - name: Upload Release Asset
+      if: github.ref == 'refs/heads/master'
       id: upload-release-asset 
       uses: actions/upload-release-asset@v1
       env:
