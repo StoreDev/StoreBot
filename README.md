@@ -12,7 +12,11 @@ StoreBot is a Discord bot that makes use of [StoreLib](https://github.com/StoreD
 
 
 ## Usage:
-Clone the repo and build StoreBot using Visual Studio 2019 *Preview*. StoreBot makes use of .NET 5, install the latest (at the time preview) [SDK](https://dotnet.microsoft.com/download/dotnet/5.0). Define your [Discord Bot Token](https://discordapp.com/developers/applications) in your environment variables, named "STOREBOTTOKEN" or edit the `discordtoken` line in config.json.
+Clone the repo and build StoreBot using Visual Studio 2019 *Preview*. StoreBot makes use of .NET 5, install the latest (at the time preview) [SDK](https://dotnet.microsoft.com/download/dotnet/5.0).
+
+Define your [Discord Bot Token](https://discordapp.com/developers/applications) in your environment variables, named **`STOREBOTTOKEN`** or edit the `discordtoken` line in config.json.
+
+
 Run StoreBot.dll using the .NET 5 runtime or build to a exe directly:
 ```
 dotnet StoreBot.dll or StoreBot.exe
@@ -42,10 +46,14 @@ Once StoreBot logs into Discord, invite the bot to the server of your choice, th
 ```
 
 ### Docker instructions:
+
 #### Building the Docker image:
+
 ```docker build -t storebot_docker .```
+
 #### Running the Docker image:
-```docker run -e storebottoken -it --rm --name storebot storebot_docker```
+
+```docker run -e STOREBOTTOKEN=replaceme -it --rm --name storebot storebot_docker```
 
 
 #### Dependencies
