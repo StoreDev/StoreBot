@@ -62,6 +62,14 @@ jobs:
         run: |
           docker buildx build --output "type=image,push=true" ${{ steps.prepare.outputs.buildx_args }}
       -
+        name: Update Dockerhub description
+        if: success() && github.event_name != 'pull_request'
+        uses: peter-evans/dockerhub-description@v2
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKERHUB_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          DOCKERHUB_REPOSITORY: ${{ steps.prepare.outputs.docker_image }}
+      -
         name: Inspect image
         if: always() && github.event_name != 'pull_request'
         run: |
