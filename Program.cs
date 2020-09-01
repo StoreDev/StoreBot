@@ -57,7 +57,7 @@ namespace StoreBot
 
         public static async Task<DiscordConfiguration> LoadConfig()
         {
-            string token = Environment.GetEnvironmentVariable("storebottoken");
+            string token = Environment.GetEnvironmentVariable("STOREBOTTOKEN");
             if (!String.IsNullOrEmpty(token))
             {
                 DiscordConfiguration configenv = new DiscordConfiguration()
