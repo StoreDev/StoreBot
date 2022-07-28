@@ -1,10 +1,9 @@
 ﻿using DSharpPlus;
-using DSharpPlus.CommandsNext;
-using DSharpPlus.CommandsNext.Exceptions;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
-using DSharpPlus.Interactivity;
+using DSharpPlus.SlashCommands;
 using Newtonsoft.Json;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -25,33 +24,33 @@ namespace StoreBot
             public string Token { get; private set; }
         }
 
-        public static Task Client_Ready(ReadyEventArgs e)
+        public static Task Client_Ready(DiscordClient _, ReadyEventArgs e)
         {
-            e.Client.DebugLogger.LogMessage(LogLevel.Info, "StoreBot", "Client is ready to process events.", DateTime.Now);
+            _.Logger.LogInformation(new EventId(1337,"StoreBot") , "Client is ready to process events.");
             return Task.CompletedTask;
         }
 
-        private static Task Client_GuildAvailable(GuildCreateEventArgs e)
+        private static Task Client_GuildAvailable(DiscordClient _, GuildCreateEventArgs e)
         {
-            e.Client.DebugLogger.LogMessage(LogLevel.Info, "StoreBot", $"Server available: {e.Guild.Name}", DateTime.Now);
+            _.Logger.LogInformation(new EventId(1337,"StoreBot") , $"Server available: {e.Guild.Name}");
             return Task.CompletedTask;
         }
 
-        private static Task Client_ClientError(ClientErrorEventArgs e)
+        private static Task Client_ClientError(DiscordClient _, ClientErrorEventArgs e)
         {
-            e.Client.DebugLogger.LogMessage(LogLevel.Error, "StoreBot", $"Exception occured: {e.Exception.GetType()}: {e.Exception.Message}", DateTime.Now);
+            _.Logger.LogInformation(new EventId(1337,"StoreBot") , $"Exception occured: {e.Exception.GetType()}: {e.Exception.Message}");
             return Task.CompletedTask;
         }
 
-        private static Task Commands_CommandExecuted(CommandExecutionEventArgs e)
+        private static Task Slash_SlashCommandErrored(SlashCommandsExtension sender, DSharpPlus.SlashCommands.EventArgs.SlashCommandErrorEventArgs e)
         {
-            e.Context.Client.DebugLogger.LogMessage(LogLevel.Info, "StoreBot", $"{e.Context.User.Username}:{e.Context.User.Id.ToString()} ran command '{e.Command.QualifiedName}'", DateTime.Now);
-            return Task.CompletedTask;
+            sender.Client.Logger.LogInformation(new EventId(1337, "StoreBot"), $"{e.Context.User.Username} tried executing '{e.Context?.CommandName ?? "<unknown command>"}' but it errored: {e.Exception.GetType()}: {e.Exception.Message ?? "<no message>"}");
+            throw new NotImplementedException();
         }
 
-        private static Task Commands_CommandErrored(CommandErrorEventArgs e)
+        private static Task Slash_SlashCommandExecuted(SlashCommandsExtension sender, DSharpPlus.SlashCommands.EventArgs.SlashCommandExecutedEventArgs e)
         {
-            e.Context.Client.DebugLogger.LogMessage(LogLevel.Error, "StoreBot", $"{e.Context.User.Username} tried executing '{e.Command?.QualifiedName ?? "<unknown command>"}' but it errored: {e.Exception.GetType()}: {e.Exception.Message ?? "<no message>"}", DateTime.Now);
+            sender.Client.Logger.LogInformation(new EventId(1337, "StoreBot"), $"{e.Context.User.Username}:{e.Context.User.Id.ToString()} ran command '{e.Context.CommandName}'");
             return Task.CompletedTask;
         }
 
@@ -65,8 +64,7 @@ namespace StoreBot
                     Token = token,
                     TokenType = TokenType.Bot,
                     AutoReconnect = true,
-                    LogLevel = LogLevel.Info,
-                    UseInternalLogHandler = true
+                    MinimumLogLevel = LogLevel.Information
                 };
                 return configenv;
             }
@@ -84,8 +82,7 @@ namespace StoreBot
                 Token = cfgjson.Token,
                 TokenType = TokenType.Bot,
                 AutoReconnect = true,
-                LogLevel = LogLevel.Info,
-                UseInternalLogHandler = true
+                MinimumLogLevel= LogLevel.Information
             };
             return config;
         }
@@ -97,30 +94,16 @@ namespace StoreBot
             client.Ready += Client_Ready;
             client.GuildAvailable += Client_GuildAvailable;
             client.ClientErrored += Client_ClientError;
-            client.UseInteractivity(new InteractivityConfiguration
-            {
-                Timeout = TimeSpan.FromMinutes(2)
-            });
 
-            var ccfg = new CommandsNextConfiguration
-            {
+            var slash = client.UseSlashCommands();
+            slash.RegisterCommands<StoreCommands>();
+            slash.RegisterCommands<AuthCommands>();
+            slash.SlashCommandErrored += Slash_SlashCommandErrored;
+            slash.SlashCommandExecuted += Slash_SlashCommandExecuted;
 
-                // enable responding in direct messages
-                EnableDms = true,
-
-                // enable mentioning the bot as a command prefix
-                EnableMentionPrefix = true
-            };
-
-            var Commands = client.UseCommandsNext(ccfg);
-            Commands.CommandErrored += Commands_CommandErrored;
-            Commands.CommandExecuted += Commands_CommandExecuted;
-            Commands.RegisterCommands<StoreCommands>();
-            Commands.RegisterCommands<AuthCommands>();
-            await client.ConnectAsync(new DiscordActivity("DisplayCatalog", ActivityType.Watching), UserStatus.Online);
+            await client.ConnectAsync(new DiscordActivity
+                ("DisplayCatalog", ActivityType.Watching), UserStatus.Online);
             await Task.Delay(-1);
         }
-
-
     }
 }
