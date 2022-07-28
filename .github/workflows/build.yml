@@ -12,7 +12,7 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: '3.1.x'
+        dotnet-version: '6.0.x'
     - name: Install dependencies
       run: dotnet restore
     - name: Build
@@ -21,13 +21,13 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: storebot-${{ github.sha }}.zip
-        path: bin/Release/netcoreapp3.1
+        path: bin/Release/net6.0
     - name: Get the version tag
       id: get_tag
       run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
     - name: Generate zip for release
       if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
-      run: zip -j Storebot-${{ steps.get_tag.outputs.VERSION }}.zip ./bin/Release/netcoreapp3.1/* ./README.md ./config.json
+      run: zip -j Storebot-${{ steps.get_tag.outputs.VERSION }}.zip ./bin/Release/net6.0/* ./README.md ./config.json
     - name: create release
       if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
       id: create_release
