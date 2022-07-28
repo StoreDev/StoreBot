@@ -27,7 +27,7 @@ jobs:
       run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
     - name: Generate zip for release
       if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
-      run: zip -j Storebot-${{ steps.get_tag.outputs.VERSION }}.zip ./bin/Release/netcoreapp3.1/* ./README.md ./config.json
+      run: zip -j Storebot-${{ steps.get_tag.outputs.VERSION }}.zip ./bin/Release/net6.0/* ./README.md ./config.json
     - name: create release
       if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
       id: create_release
