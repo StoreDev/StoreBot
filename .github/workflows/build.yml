@@ -21,7 +21,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: storebot-${{ github.sha }}.zip
-        path: bin/Release/netcoreapp6.0
+        path: bin/Release/net6.0
     - name: Get the version tag
       id: get_tag
       run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
